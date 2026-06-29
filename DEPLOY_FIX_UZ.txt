@@ -1,0 +1,4 @@
+TUZATISH:
+GitHub repository bosh papkasida main.py, index.html, requirements.txt va render.yaml turishi kerak.
+Render startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+GitHubga shu papka ichidagi fayllarni yuklang, keyin Renderda Manual Deploy qiling.
