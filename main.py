@@ -364,6 +364,64 @@ COMMON_HEADERS = {
     "Accept-Language": "uz,en-US;q=0.9,en;q=0.8,ru;q=0.7",
 }
 
+
+def jina_search(client: httpx.Client, query: str) -> list[dict]:
+    """Fast server-side web search via Jina Reader Search.
+    It returns real URLs and readable page text, which is more reliable on Render
+    than scraping search-result HTML directly. No keys are shown in the interface.
+    """
+    out: list[dict] = []
+    last_error = None
+    # Try both official formats: ?q= and path-encoded query.
+    urls = [
+        ("https://s.jina.ai/", {"q": query}),
+        ("https://s.jina.ai/" + quote_plus(query), None),
+    ]
+    headers = dict(COMMON_HEADERS)
+    headers.update({
+        "Accept": "text/plain, text/markdown, */*",
+        "X-Respond-With": "text",
+        "X-No-Cache": "true",
+    })
+    for endpoint, params in urls:
+        try:
+            r = client.get(endpoint, params=params, headers=headers, follow_redirects=True, timeout=18.0)
+            if r.status_code >= 400:
+                last_error = f"Jina Search HTTP {r.status_code}"
+                continue
+            text = r.text or ""
+            # Common Reader format: Title / URL Source / Markdown Content
+            pattern = re.compile(
+                r"(?:^|\n)Title:\s*(?P<title>.*?)\nURL Source:\s*(?P<url>https?://\S+)(?P<body>.*?)(?=\nTitle:\s|\Z)",
+                re.S | re.I,
+            )
+            for m in pattern.finditer(text):
+                body = m.group('body')
+                body = re.sub(r"^\s*(Markdown Content|Content|Description):\s*", "", body.strip(), flags=re.I)
+                item = result_item(m.group('title'), m.group('url'), body[:1600], "Jina Reader Search")
+                if item:
+                    out.append(item)
+                if len(out) >= 8:
+                    return out
+            # Fallback: collect any real URLs with nearby text.
+            if not out:
+                for m in re.finditer(r"https?://[^\s)\]>'\"]+", text):
+                    url = m.group(0).rstrip('.,;:')
+                    start = max(0, m.start()-350)
+                    end = min(len(text), m.end()+900)
+                    item = result_item(domain_of(url), url, text[start:end], "Jina Reader Search")
+                    if item:
+                        out.append(item)
+                    if len(out) >= 8:
+                        return out
+            if out:
+                return out[:8]
+        except Exception as exc:
+            last_error = str(exc)
+    if last_error:
+        raise RuntimeError(last_error)
+    return out[:8]
+
 def duckduckgo_html_search(client: httpx.Client, query: str) -> list[dict]:
     def parse(text: str) -> list[dict]:
         out = []
@@ -588,7 +646,7 @@ UNIVERSITY_SCOPES = [
 
 def combined_web_search(client: httpx.Client, query: str, include_extra: bool = True) -> list[dict]:
     combined, seen, errors = [], set(), []
-    providers = [duckduckgo_html_search, bing_html_search, yahoo_html_search]
+    providers = [jina_search, duckduckgo_html_search, bing_html_search, yahoo_html_search]
     if include_extra:
         providers.append(brave_html_search)
     # Use hidden official providers if the owner configured keys in .env.
@@ -633,7 +691,7 @@ def academic_search(client: httpx.Client, phrase: str) -> list[dict]:
 def university_search(client: httpx.Client, phrase: str) -> list[dict]:
     combined, seen = [], set()
     # Search broad academic domains first; keep count limited for speed.
-    for scope in UNIVERSITY_SCOPES[:10]:
+    for scope in UNIVERSITY_SCOPES[:6]:
         query = f'{scope} "{phrase}"'
         try:
             for it in combined_web_search(client, query, include_extra=False):
@@ -699,7 +757,7 @@ def verified_overlap(client: httpx.Client, item: dict, phrase: str) -> tuple[flo
     return ov, snippet, False, "search snippet word-overlap"
 
 def internet_sources(text: str, max_phrases: int = 6, provider_override: Optional[str] = None) -> dict:
-    phrases = pick_query_phrases(text, max_phrases)
+    phrases = pick_query_phrases(text, min(max_phrases, 4))
     if not phrases:
         return {
             "ok": True,
@@ -737,7 +795,7 @@ def internet_sources(text: str, max_phrases: int = 6, provider_override: Optiona
                         continue
                     ov, snippet, exact, evidence = verified_overlap(client, item, phrase)
                     # Correctness rule: exact phrase is strongest; otherwise require high overlap.
-                    if not exact and ov < 0.52:
+                    if not exact and ov < (0.34 if (item.get("provider", "").startswith("Jina")) else 0.50):
                         continue
                     phrase_hits_for_this_phrase = True
                     cat = item.get("category") or category_for_url(url, item.get("provider", ""))
@@ -776,7 +834,7 @@ def internet_sources(text: str, max_phrases: int = 6, provider_override: Optiona
                             continue
                         ov, snippet, exact, evidence = verified_overlap(client, item, phrase)
                         # Metadata sources are useful but should not create false high plagiarism.
-                        min_score = 0.45 if category in {"academic", "university"} else 0.52
+                        min_score = 0.40 if category in {"academic", "university"} else 0.50
                         if not exact and ov < min_score:
                             continue
                         phrase_hits_for_this_phrase = True
@@ -836,7 +894,7 @@ def internet_sources(text: str, max_phrases: int = 6, provider_override: Optiona
 
     if sources:
         notice = (
-            "Internet Server Edition: open web, academic metadata, and university-domain searches completed. "
+            "Internet Server Edition: automatic web search, academic metadata, and university-domain searches completed. "
             "Only real source links are shown; exact source text should still be checked by opening each link."
         )
     elif errors:
@@ -855,6 +913,7 @@ def internet_sources(text: str, max_phrases: int = 6, provider_override: Optiona
         "phrases": phrases,
         "categoryCounts": category_counts,
         "totalQueries": total_queries,
+        "errors": errors[:3],
         "notice": notice,
     }
 
@@ -911,7 +970,7 @@ def health():
     return {
         "status": "ok",
         "mode": "Internet Server Edition",
-        "source_groups": ["open web", "academic repositories", "university domains"],
+        "source_groups": ["Jina Reader Search", "open web", "academic repositories", "university domains"],
         "index_html": INDEX_HTML.exists(),
     }
 

@@ -1,9 +1,19 @@
-# Plagiarism Detector Pro Internet Server
+# Internet Detector Pro — Render Internet Search Fix
 
-Render start command:
+Bu paket Render uchun tuzatilgan versiya. Interfeysda API kalit yozuvlari ko‘rinmaydi.
+Server `/api/search-sources` orqali avtomatik internet qidiruvi qiladi.
 
-```bash
+## Render start command
 uvicorn main:app --host 0.0.0.0 --port $PORT
-```
 
-Health check: `/api/health`
+## Muhim
+GitHub repository bosh papkasiga quyidagi fayllarni yuklang:
+- main.py
+- index.html
+- requirements.txt
+- render.yaml
+- Procfile
+- runtime.txt
+- README.md
+
+Keyin Render: Manual Deploy → Clear build cache & deploy.

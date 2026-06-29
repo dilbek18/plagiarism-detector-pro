@@ -1,0 +1,12 @@
+INTERNET QIDIRUVINI TUZATISH
+
+1) ZIP faylni Extract All qiling.
+2) GitHub repositoryingizga kiring: dilbek18/plagiarism-detector-pro
+3) Add file → Upload files.
+4) Extract qilingan papka ichidagi fayllarni yuklang. ZIPning o‘zini yuklamang.
+5) Commit changes bosing.
+6) Renderga qayting.
+7) Manual Deploy → Clear build cache & deploy bosing.
+8) Sayt ochilgach, matn kiriting va “Manbalarni internetdan qidirish” yoqilgan holda Matnni tahlil qilish tugmasini bosing.
+
+Bu versiya Jina Reader Search, DuckDuckGo/Bing/Yahoo fallback, ilmiy metadata va universitet domenlarini server tomonda tekshiradi.

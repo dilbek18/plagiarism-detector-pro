@@ -1260,7 +1260,7 @@ async function runAnalysis(){
       const res=await searchSources(txt);
       if(res){
         a.online=true; a.sources=res.sources; a.phrasesChecked=res.phrasesChecked;
-        a.onlinePlag=res.onlinePlag;
+        a.onlinePlag=res.onlinePlag; a.onlineNotice=res.notice||''; a.totalQueries=res.totalQueries||0;
         if(res.sources.length){
           a.plag=Math.max(a.plag, res.onlinePlag);
           a.originality=Math.max(0,100-a.plag);
@@ -1373,10 +1373,10 @@ function sourcesPanel(a){
         <span><b>${a.sources.length}</b> ${t('onlineFoundN')} · ${t('onlinePlagLabel')}: <b>${a.onlinePlag}%</b></span></div>
       ${bar}
       <div class="srclist" style="margin-top:12px;display:grid;gap:10px">${rows}</div>
-      <small style="display:block;margin-top:10px;color:var(--ink-faint)">${t('onlineSnippetNote')}</small>`;
+      ${a.onlineNotice?`<small style="display:block;margin-top:8px;color:var(--ink-faint)">${esc(a.onlineNotice)}</small>`:''}<small style="display:block;margin-top:10px;color:var(--ink-faint)">${t('onlineSnippetNote')}</small>`;
   }
   if(a.online){
-    return `<div class="notice"><span class="ic">🌐</span><span>${t('onlineNoneFound')}</span></div>${bar}`;
+    return `<div class="notice"><span class="ic">🌐</span><span>${t('onlineNoneFound')} ${a.phrasesChecked?`<br><small>Tekshirilgan iboralar: ${a.phrasesChecked}${a.totalQueries?` · Qidiruv so‘rovlari: ${a.totalQueries}`:''}</small>`:''}${a.onlineNotice?`<br><small>${esc(a.onlineNotice)}</small>`:''}</span></div>${bar}`;
   }
   return `<div class="notice"><span class="ic">ⓘ</span><span>${t('sourcesOff')}</span></div>${bar}`;
 }
