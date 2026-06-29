@@ -1,58 +1,69 @@
-Internet Source Plagiarism Detector Pro
-Muallif: Dilshod Xo'jayev
-O'zbekiston davlat jahon tillari universiteti
+ACADEMIC INTEGRITY SEARCH SERVER — Render free uchun yengil variant
+Muallif: Dilshod Xo'jayev loyihasi uchun moslashtirilgan.
 
-YANGI INTERNET SERVER EDITION
+NIMA QILADI:
+- API kalitlar frontendda ko'rinmaydi.
+- Google Programmable Search, Brave Search, Serper va DuckDuckGo/SearchAPI ni server orqali ulaydi.
+- API kalit bo'lmasa ham DuckDuckGo Lite fallback orqali oddiy qidiruv qiladi.
+- PDF, DOCX, TXT, HTML, PPTX fayldan matn ajratib, internetdan o'xshash manbalarni topadi.
+- 512 MB free Render uchun og'ir AI modellar, torch, transformers, OCR olib tashlangan.
 
-Bu versiyada foydalanuvchi interfeysida kalit yoki texnik URL sozlamalari ko'rinmaydi.
-Dastur bitta belgi orqali ishlaydi: "Manbalarni internetdan qidirish".
+FAYLLARNI QO'YISH:
+1) GitHub repongizga quyidagi fayllarni yuklang:
+   - main.py
+   - requirements.txt
+   - render.yaml
+   - Procfile
+   - static/index.html
+2) Render dashboard > Settings:
+   Build Command:
+   pip install --no-cache-dir -r requirements.txt
 
-QIDIRUV NIMALARNI BIRLASHTIRADI?
-1) Ochiq internet web manbalari:
-   - DuckDuckGo natijalari
-   - Bing natijalari
-   - Yahoo natijalari
-   - Brave natijalari
-2) Ilmiy va akademik manbalar:
-   - OpenAlex
-   - Crossref / DOI manbalari
-   - Semantic Scholar
-   - arXiv
-3) Universitet domenlari:
-   - .edu
-   - .ac.uk
-   - .edu.au
-   - .edu.cn
-   - .edu.tr
-   - .edu.uz
-   - .edu.kz
-   - .edu.az
-   - .ac.jp
-   - .ac.kr
-   - edu.uz
-   - ziyonet.uz
-   - uzswlu.uz
-   - .uz universitet domenlari
+   Start Command:
+   uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
 
-MUHIM HAQIQAT:
-Hech bir oddiy kompyuter dasturi internetdagi mutlaqo barcha sahifalarni 100% qamrab olmaydi.
-Buning uchun Turnitin kabi katta yopiq bazalar, pullik qidiruv indekslari va server infratuzilmasi kerak bo'ladi.
-Bu dastur esa ochiq internet, ilmiy servislar va universitet domenlarini birlashtirib avtomatik qidiradi hamda faqat haqiqiy havolalarni chiqaradi.
+3) Render > Environment:
+   PYTHON_VERSION=3.11.9
+   WEB_CONCURRENCY=1
+   PYTHONUNBUFFERED=1
+   PIP_NO_CACHE_DIR=1
 
-ISHGA TUSHIRISH:
-1. ZIP faylni albatta Extract All / Izvlech vsyo qiling.
-2. Papka ichidan START_INTERNET_SERVER.bat ni oching.
-3. Qora oynani yopmang.
-4. Brauzerda http://127.0.0.1:8000 ochiladi.
-5. Matn kiriting.
-6. "Manbalarni internetdan qidirish" yoqilgan bo'lsin.
-7. "Matnni tahlil qilish" ni bosing.
+4) Google ulash uchun Environmentga qo'shing:
+   GOOGLE_API_KEY=...
+   GOOGLE_CSE_ID=...
 
-Agar dastur ochilmasa:
-- start_error.log faylini yuboring.
-- Python o'rnatilmagan bo'lsa, INSTALL_PYTHON_WINDOWS.bat ni ochib Python o'rnating.
+5) Qo'shimcha qidiruv tizimlari:
+   BRAVE_API_KEY=...
+   SERPER_API_KEY=...
+   SEARCHAPI_API_KEY=...
 
-.COM SAYT QILISH HAQIDA:
-Bu ZIP kompyuterda lokal ishlaydi, shuning uchun manzil 127.0.0.1 bo'ladi.
-Uni .com domeniga chiqarish uchun dasturni Render, Railway, VPS yoki universitet serveriga joylash kerak.
-Lokal Windows dasturi o'z-o'zidan .com bo'lib qolmaydi.
+6) Render > Manual Deploy > Clear build cache & deploy.
+
+TEKSHIRISH:
+Brauzerda oching:
+https://SIZNING-SERVER.onrender.com/health
+
+Agar google true bo'lsa, Google ulangan:
+"google": true
+
+API ENDPOINTLAR:
+POST /api/search
+Body:
+{"q":"artificial intelligence in education", "limit":8, "academic":true}
+
+POST /api/check
+Body:
+{"text":"Matn...", "max_fragments":8, "limit_per_fragment":5, "academic":true}
+
+POST /api/check-file
+Form-data:
+file: PDF/DOCX/TXT/HTML/PPTX
+max_fragments: 8
+limit_per_fragment: 5
+academic: true
+
+MUHIM:
+- Google Custom Search JSON API uchun Google Programmable Search Engine yaratish va API key olish kerak.
+- GOOGLE_CSE_ID bu Google'dagi Search engine ID / cx qiymati.
+- Google qidiruvi butun internetdan ishlashi uchun Programmable Search Engine sozlamasida “Search the entire web” yoqiladi.
+- API kalitlarni index.html yoki GitHub kod ichiga yozmang. Faqat Render Environmentga yozing.

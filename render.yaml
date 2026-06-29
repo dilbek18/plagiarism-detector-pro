@@ -3,10 +3,14 @@ services:
     name: plagiarism-detector-internet-server
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
     envVars:
-      - key: SEARCH_PROVIDER
-        value: internet_server_all
-      - key: ALLOW_ORIGINS
-        value: '*'
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: WEB_CONCURRENCY
+        value: 1
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PIP_NO_CACHE_DIR
+        value: 1
