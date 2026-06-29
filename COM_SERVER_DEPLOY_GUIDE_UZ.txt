@@ -1,0 +1,16 @@
+.COM yoki universitet serveriga chiqarish bo'yicha qisqa yo'l
+
+Lokal versiya: http://127.0.0.1:8000
+Internetdagi versiya: masalan https://sizning-domeningiz.com
+
+Kerak bo'ladi:
+1. Domen: .com yoki universitet subdomeni.
+2. Hosting/server: VPS, Render, Railway, PythonAnywhere yoki universitet serveri.
+3. Python 3.10+.
+4. Serverda quyidagi buyruqlar:
+   python -m pip install -r backend/requirements.txt
+   python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
+5. Domenni server IP manziliga ulash.
+6. HTTPS uchun Nginx + SSL yoki hosting platformasining tayyor HTTPS funksiyasi.
+
+Eslatma: .com serverga chiqarilganda foydalanuvchilar START faylni bosmaydi; ular oddiy brauzerda domenni ochadi.

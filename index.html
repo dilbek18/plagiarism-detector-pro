@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Internet Source Plagiarism Detector Pro</title>
+<meta name="author" content="Dilshod Xo‘jayev" />
+<!--
+  Multilingual Plagiarism & AI Writing Detector Pro
+  Author: Dilshod Xo‘jayev — Uzbekistan State World Languages University
+  Single-file academic originality checker (runs fully in the browser).
+
+  Honesty note (kept on purpose): AI-detection and plagiarism figures are
+  PROBABILISTIC ESTIMATES computed from heuristics. Live internet source
+  matching works through Internet Server mode documented in README.md — this file never invents fake source
+  links or fake certainty.
+-->
+<style>
+  /* ============================== Design tokens ============================== */
+  :root{
+    --paper:#FAF7F0; --paper-2:#F2ECE0; --card:#FFFFFF; --ink:#1A2238;
+    --ink-soft:#46506E; --ink-faint:#8A91A8; --line:#E4DCCB; --line-soft:#EFE9DC;
+    --lapis:#2B3A8C; --lapis-2:#3A4BB0; --gold:#B98A1E; --gold-soft:#E7C766;
+    --seal:#1F2A66;
+    --red:#C5453B; --orange:#D2742B; --yellow:#C9A227; --purple:#7E57C2;
+    --blue:#2F6FB0; --green:#2E8B57;
+    --red-bg:#FBE9E7; --orange-bg:#FBEEDF; --yellow-bg:#FBF4DA;
+    --purple-bg:#EFE9FA; --blue-bg:#E5EFF8; --green-bg:#E4F2EA;
+    --shadow:0 1px 2px rgba(26,34,56,.06),0 8px 28px rgba(26,34,56,.08);
+    --shadow-lg:0 24px 70px rgba(26,34,56,.18);
+    --radius:14px; --radius-sm:9px;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","Source Serif Pro",Georgia,serif;
+    --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","PingFang SC","Microsoft YaHei",sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  }
+  html[data-theme="dark"]{
+    --paper:#0F1426; --paper-2:#161D34; --card:#1A2238; --ink:#ECEEF6;
+    --ink-soft:#B7BFD6; --ink-faint:#7B84A0; --line:#2A3454; --line-soft:#222B47;
+    --lapis:#7E8DE6; --lapis-2:#9AA6EE; --gold:#E7C766; --gold-soft:#9C7A22;
+    --seal:#C9B36B;
+    --card-2:#222C4A;
+    --red:#F08A82; --orange:#F0A86A; --yellow:#E8CE6F; --purple:#B69AE6;
+    --blue:#7FB1E0; --green:#74C79A;
+    --red-bg:#3a2422; --orange-bg:#3a2e1f; --yellow-bg:#383219;
+    --purple-bg:#2c2540; --blue-bg:#1f2c3c; --green-bg:#1d3328;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 34px rgba(0,0,0,.45);
+    --shadow-lg:0 24px 70px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--ui); color:var(--ink); background:var(--paper);
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+    background-image:radial-gradient(1200px 600px at 110% -10%,rgba(43,58,140,.06),transparent 60%);
+  }
+  h1,h2,h3,.serif{font-family:var(--serif)}
+  button{font-family:inherit}
+  a{color:var(--lapis)}
+  .hidden{display:none !important}
+  ::selection{background:var(--gold-soft);color:#1A2238}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);padding:10px 16px;border-radius:10px;
+    cursor:pointer;font-weight:600;font-size:.92rem;transition:.15s;white-space:nowrap}
+  .btn:hover{border-color:var(--ink-faint);transform:translateY(-1px)}
+  .btn:focus-visible{outline:3px solid var(--gold-soft);outline-offset:2px}
+  .btn.primary{background:var(--lapis);border-color:var(--lapis);color:#fff}
+  .btn.primary:hover{background:var(--lapis-2);border-color:var(--lapis-2)}
+  .btn.gold{background:var(--gold);border-color:var(--gold);color:#241a00}
+  .btn.ghost{background:transparent}
+  .btn.sm{padding:7px 11px;font-size:.82rem;border-radius:9px}
+  .btn.block{width:100%;justify-content:center}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .icon-btn{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:10px;
+    border:1px solid var(--line);background:var(--card);cursor:pointer;color:var(--ink)}
+  .icon-btn:hover{border-color:var(--ink-faint)}
+
+  input,select,textarea{font-family:inherit;color:var(--ink);background:var(--card);
+    border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:.95rem;width:100%}
+  input:focus,select,textarea:focus{outline:none;border-color:var(--lapis)}
+  label{font-size:.82rem;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:6px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:700;
+    padding:4px 10px;border-radius:999px;letter-spacing:.02em}
+  .eyebrow{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:800}
+
+  /* ============================== Crest / logo ============================== */
+  .crest{flex:0 0 auto}
+  .crest svg{display:block}
+
+  /* ============================== Top bar ============================== */
+  .topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:14px;
+    padding:12px 18px;background:color-mix(in srgb,var(--paper) 86%,transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:11px;min-width:0}
+  .brand .t1{font-family:var(--serif);font-weight:700;font-size:1.02rem;line-height:1.05}
+  .brand .t2{font-size:.7rem;color:var(--ink-faint);letter-spacing:.04em}
+  .grow{flex:1}
+  .switcher{position:relative}
+  .menu{position:absolute;right:0;top:46px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;box-shadow:var(--shadow);padding:6px;min-width:190px;z-index:60}
+  .menu button{display:flex;align-items:center;gap:10px;width:100%;border:none;background:none;
+    color:var(--ink);padding:9px 11px;border-radius:8px;cursor:pointer;font-size:.9rem;text-align:start}
+  .menu button:hover{background:var(--paper-2)}
+  .menu button.active{color:var(--lapis);font-weight:700}
+
+  /* ============================== App shell ============================== */
+  .shell{display:grid;grid-template-columns:248px 1fr;min-height:calc(100vh - 61px)}
+  .side{border-inline-end:1px solid var(--line);padding:16px 12px;background:var(--paper);
+    position:sticky;top:61px;height:calc(100vh - 61px);overflow:auto}
+  .navbtn{display:flex;align-items:center;gap:11px;width:100%;border:none;background:none;
+    color:var(--ink-soft);padding:10px 12px;border-radius:10px;cursor:pointer;font-size:.92rem;
+    font-weight:600;text-align:start;margin-bottom:2px;transition:.12s}
+  .navbtn:hover{background:var(--paper-2);color:var(--ink)}
+  .navbtn.active{background:color-mix(in srgb,var(--lapis) 12%,transparent);color:var(--lapis)}
+  .navbtn .ic{width:20px;display:inline-grid;place-items:center;flex:0 0 auto}
+  .nav-sep{height:1px;background:var(--line-soft);margin:10px 6px}
+  .main{padding:26px clamp(16px,3.4vw,40px);max-width:1240px;width:100%}
+  .view{animation:rise .35s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .page-h{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+  .page-h h1{margin:0;font-size:clamp(1.5rem,3vw,2rem);letter-spacing:-.01em}
+  .page-h p{margin:4px 0 0;color:var(--ink-faint);font-size:.92rem;max-width:60ch}
+
+  /* ============================== Auth ============================== */
+  .auth-wrap{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr}
+  .auth-left{position:relative;padding:48px;display:flex;flex-direction:column;justify-content:space-between;
+    color:#EAEAF5;background:
+      radial-gradient(900px 500px at 90% 0%,rgba(185,138,30,.30),transparent 55%),
+      radial-gradient(700px 600px at -10% 100%,rgba(58,75,176,.55),transparent 55%),
+      linear-gradient(160deg,#1B2452,#10162F 70%)}
+  .auth-left .mark{display:flex;align-items:center;gap:13px}
+  .auth-left h2{font-size:clamp(1.8rem,3.4vw,2.7rem);line-height:1.08;margin:0 0 14px;letter-spacing:-.01em}
+  .auth-left .lead{color:#C3C8E6;max-width:46ch;font-size:1.02rem}
+  .auth-left ul{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:11px}
+  .auth-left li{display:flex;gap:10px;color:#D6DAF0;font-size:.95rem;align-items:flex-start}
+  .auth-left .dot{color:var(--gold-soft);flex:0 0 auto;margin-top:2px}
+  .auth-foot{font-size:.78rem;color:#8E96C4}
+  .auth-right{display:grid;place-items:center;padding:32px;background:var(--paper)}
+  .auth-card{width:100%;max-width:410px}
+  .auth-card .field{margin-bottom:14px}
+  .pw-wrap{position:relative}
+  .pw-wrap .icon-btn{position:absolute;inset-inline-end:5px;top:50%;transform:translateY(-50%);
+    width:34px;height:34px;border:none;background:none}
+  .row-between{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .check{display:flex;align-items:center;gap:8px;font-size:.86rem;color:var(--ink-soft);cursor:pointer;font-weight:600}
+  .check input{width:auto}
+  .or{display:flex;align-items:center;gap:12px;color:var(--ink-faint);font-size:.8rem;margin:16px 0}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+  .tab-row{display:flex;gap:6px;background:var(--paper-2);padding:5px;border-radius:11px;margin-bottom:20px}
+  .tab-row button{flex:1;border:none;background:none;padding:9px;border-radius:8px;cursor:pointer;
+    font-weight:700;color:var(--ink-soft);font-size:.86rem}
+  .tab-row button.active{background:var(--card);color:var(--lapis);box-shadow:var(--shadow)}
+
+  /* ============================== Analysis view ============================== */
+  .work{display:grid;grid-template-columns:1.25fr .9fr;gap:20px;align-items:start}
+  .input-tabs{display:flex;gap:6px;margin-bottom:12px}
+  .input-tabs .chip{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:999px;
+    cursor:pointer;font-weight:600;font-size:.85rem;color:var(--ink-soft)}
+  .input-tabs .chip.active{background:var(--lapis);color:#fff;border-color:var(--lapis)}
+  textarea#editor{min-height:340px;resize:vertical;line-height:1.7;font-size:1rem}
+  .drop{border:2px dashed var(--line);border-radius:var(--radius);padding:34px;text-align:center;
+    background:var(--card);transition:.15s;cursor:pointer}
+  .drop.over{border-color:var(--lapis);background:color-mix(in srgb,var(--lapis) 8%,var(--card))}
+  .drop .big{font-size:2rem}
+  .fmts{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+  .fmts .pill{background:var(--paper-2);color:var(--ink-soft);border:1px solid var(--line)}
+  .meta-row{display:flex;gap:16px;flex-wrap:wrap;color:var(--ink-faint);font-size:.84rem;margin-top:10px}
+  .meta-row b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+  .progress{height:8px;background:var(--paper-2);border-radius:999px;overflow:hidden}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--lapis),var(--gold));
+    width:0;transition:width .4s}
+
+  /* score seal */
+  .seal-card{display:flex;gap:18px;align-items:center}
+  .seal{--v:0;position:relative;width:118px;height:118px;flex:0 0 auto;border-radius:50%;
+    background:conic-gradient(var(--gold) calc(var(--v)*1%),var(--line-soft) 0);
+    display:grid;place-items:center}
+  .seal::before{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--card);
+    border:1px solid var(--line)}
+  .seal .v{position:relative;text-align:center;font-family:var(--serif)}
+  .seal .v b{font-size:1.9rem;line-height:1;display:block}
+  .seal .v span{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)}
+  .grade-tag{font-family:var(--serif);font-size:1.35rem;font-weight:700}
+
+  .metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .metric{border:1px solid var(--line);border-radius:11px;padding:12px}
+  .metric .lab{font-size:.74rem;color:var(--ink-faint);font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+  .metric .num{font-family:var(--serif);font-size:1.5rem;font-weight:700;margin-top:2px;line-height:1}
+  .metric .bar{height:6px;background:var(--paper-2);border-radius:999px;margin-top:9px;overflow:hidden}
+  .metric .bar > i{display:block;height:100%;border-radius:999px}
+
+  /* annotated text */
+  .annot{line-height:2.05;font-size:1.03rem;white-space:pre-wrap;word-break:break-word}
+  mark.f{padding:.05em .12em;border-radius:4px;cursor:pointer;border-bottom:2.5px solid;
+    background:transparent;transition:background .12s;color:inherit}
+  mark.f:hover{filter:brightness(.97)}
+  mark.spell{border-color:var(--red);background:var(--red-bg)}
+  mark.grammar{border-color:var(--orange);background:var(--orange-bg)}
+  mark.awkward{border-color:var(--yellow);background:var(--yellow-bg)}
+  mark.ai{border-color:var(--purple);background:var(--purple-bg)}
+  mark.plag{border-color:var(--blue);background:var(--blue-bg)}
+  mark.suggest{border-color:var(--green);background:var(--green-bg)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 14px}
+  .legend .pill{border:1px solid var(--line)}
+  .lg-spell{background:var(--red-bg);color:var(--red)}
+  .lg-grammar{background:var(--orange-bg);color:var(--orange)}
+  .lg-awkward{background:var(--yellow-bg);color:#9c7d10}
+  .lg-ai{background:var(--purple-bg);color:var(--purple)}
+  .lg-plag{background:var(--blue-bg);color:var(--blue)}
+  .lg-suggest{background:var(--green-bg);color:var(--green)}
+
+  /* issue popover */
+  .pop{position:fixed;z-index:90;width:min(340px,92vw);background:var(--card);
+    border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-lg);padding:14px;animation:rise .15s ease both}
+  .pop .ttl{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.78rem;letter-spacing:.05em;text-transform:uppercase}
+  .pop .expl{font-size:.9rem;color:var(--ink-soft);margin:9px 0}
+  .pop .fix{font-size:.95rem;background:var(--green-bg);border:1px solid color-mix(in srgb,var(--green) 30%,transparent);
+    border-radius:9px;padding:9px 11px;margin:8px 0}
+  .pop .fix b{color:var(--green)}
+  .pop .acts{display:flex;gap:8px;margin-top:10px}
+
+  .issuelist{display:grid;gap:9px}
+  .issue{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center;
+    border:1px solid var(--line);border-radius:11px;padding:11px 12px;cursor:pointer;background:var(--card)}
+  .issue:hover{border-color:var(--ink-faint)}
+  .issue .tag{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+  .issue .body b{font-size:.92rem}
+  .issue .body small{display:block;color:var(--ink-faint);font-size:.8rem;margin-top:1px}
+
+  .src{border:1px solid var(--line);border-radius:11px;padding:12px;display:grid;gap:6px}
+  .src .top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+  .src .lvl{height:6px;background:var(--paper-2);border-radius:999px;overflow:hidden}
+  .src .lvl>i{display:block;height:100%;background:var(--blue)}
+  .srcrow{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:var(--paper);transition:.15s}
+  .srcrow:hover{border-color:var(--blue);background:var(--blue-bg)}
+
+  .notice{border:1px solid color-mix(in srgb,var(--gold) 38%,transparent);background:var(--yellow-bg);
+    border-radius:12px;padding:13px 15px;font-size:.86rem;color:var(--ink-soft);display:flex;gap:10px}
+  .notice .ic{color:var(--gold);flex:0 0 auto}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{text-align:start;padding:11px 12px;border-bottom:1px solid var(--line-soft)}
+  th{font-size:.74rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint)}
+  tbody tr:hover{background:var(--paper-2)}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .stat{padding:16px}
+  .stat .n{font-family:var(--serif);font-size:2rem;font-weight:700;line-height:1}
+  .stat .l{color:var(--ink-faint);font-size:.82rem;margin-top:4px}
+
+  /* certificate */
+  .cert{position:relative;background:linear-gradient(180deg,#fffdf8,#fbf6ea);color:#1A2238;
+    border:2px solid var(--gold);border-radius:10px;padding:38px 40px;max-width:760px;margin:0 auto;
+    box-shadow:var(--shadow-lg);font-family:var(--serif)}
+  .cert::before{content:"";position:absolute;inset:11px;border:1.5px solid color-mix(in srgb,var(--gold) 55%,transparent);
+    border-radius:6px;pointer-events:none}
+  .cert .ribbon{position:absolute;top:-1px;inset-inline-start:34px;background:var(--lapis);color:#fff;
+    padding:7px 14px;border-radius:0 0 8px 8px;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;font-family:var(--ui);font-weight:800}
+  .cert h2{text-align:center;font-size:1.85rem;margin:6px 0 2px}
+  .cert .sub{text-align:center;color:#6a6450;font-family:var(--ui);font-size:.82rem;letter-spacing:.04em}
+  .cert .recip{text-align:center;margin:18px 0}
+  .cert .recip .nm{font-size:2rem;border-bottom:2px solid var(--gold);display:inline-block;padding:0 18px 4px}
+  .cert .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 26px;font-family:var(--ui);margin:18px 0;font-size:.9rem}
+  .cert .grid .k{color:#7a7460;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
+  .cert .grid .v{font-weight:700;color:#1A2238}
+  .cert .footer{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:18px;font-family:var(--ui)}
+  .cert .sigline{border-top:1.5px solid #46506E;padding-top:5px;font-size:.78rem;color:#46506E;min-width:170px;text-align:center}
+  .cert #qrbox{width:92px;height:92px;background:#fff;border:1px solid #ddd;border-radius:6px;display:grid;place-items:center}
+  .cert .cid{font-family:var(--mono);font-size:.7rem;color:#7a7460}
+  .cert .seal-stamp{position:absolute;inset-inline-end:34px;bottom:40px;width:78px;height:78px;border-radius:50%;
+    border:2px dashed var(--gold);display:grid;place-items:center;color:var(--gold);transform:rotate(-12deg);
+    font-family:var(--ui);font-size:.58rem;text-align:center;font-weight:800;letter-spacing:.04em;opacity:.85}
+
+  .toast{position:fixed;inset-inline:0;bottom:22px;margin-inline:auto;width:max-content;max-width:90vw;
+    background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:11px;font-size:.88rem;
+    box-shadow:var(--shadow-lg);z-index:120;animation:rise .2s ease both}
+
+  .empty{text-align:center;padding:48px 20px;color:var(--ink-faint)}
+  .empty .big{font-size:2.4rem;margin-bottom:8px}
+
+  .mobile-only{display:none}
+  .hamb{display:none}
+
+  @media (max-width:1040px){ .work{grid-template-columns:1fr} }
+  @media (max-width:880px){
+    .auth-wrap{grid-template-columns:1fr}.auth-left{display:none}
+    .shell{grid-template-columns:1fr}
+    .side{position:fixed;inset:61px auto 0 0;width:264px;z-index:50;transform:translateX(-110%);
+      transition:.25s;box-shadow:var(--shadow-lg)}
+    html[dir="rtl"] .side{inset:61px 0 0 auto;transform:translateX(110%)}
+    .side.open{transform:none}
+    .hamb{display:inline-grid}
+    .scrim{position:fixed;inset:61px 0 0;background:rgba(0,0,0,.4);z-index:45}
+    .metrics{grid-template-columns:1fr 1fr}
+    .cert{padding:26px 22px}.cert .grid{grid-template-columns:1fr}
+  }
+  @media print{
+    body *{visibility:hidden}
+    #print-area,#print-area *{visibility:visible}
+    #print-area{position:absolute;inset:0;margin:0;padding:10px}
+    .cert{box-shadow:none;margin:0}
+  }
+</style>
+</head>
+<body>
+
+<!-- =================================================================== -->
+<!-- AUTH SCREEN                                                          -->
+<!-- =================================================================== -->
+<section id="auth" class="auth-wrap">
+  <div class="auth-left">
+    <div>
+      <div class="mark">
+        <span class="crest" id="crestAuth"></span>
+        <div>
+          <div class="serif" style="font-size:1.15rem;font-weight:700">Internet Detector Pro</div>
+          <div style="font-size:.72rem;color:#9aa0cf" data-i18n="uniShort">Uzbekistan State World Languages University</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="eyebrow" style="color:var(--gold-soft)" data-i18n="heroEyebrow">Academic originality, explained</div>
+      <h2 data-i18n="heroTitle">Internet Source Plagiarism Detector Pro</h2>
+      <p class="lead" data-i18n="heroLead">Analyse texts in five languages, see every issue highlighted in place, get clear corrections, and produce an official originality certificate.</p>
+      <ul>
+        <li><span class="dot">◆</span><span data-i18n="heroP1">Plagiarism & AI-writing estimates with explanations, never blind percentages</span></li>
+        <li><span class="dot">◆</span><span data-i18n="heroP2">Spelling, grammar and academic-style checks with one-click fixes</span></li>
+        <li><span class="dot">◆</span><span data-i18n="heroP3">PDF, DOCX, TXT, HTML, PPTX and image (OCR) support</span></li>
+      </ul>
+    </div>
+    <div class="auth-foot">
+      <span data-i18n="authorLine">Created by Dilshod Xo‘jayev</span> · Uzbekistan State World Languages University
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-card">
+      <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="crest" id="crestAuth2"></span>
+          <b class="serif" style="font-size:1.05rem" data-i18n="signInTitle">Sign in</b>
+        </div>
+        <div style="display:flex;gap:8px">
+          <select id="langAuth" style="width:auto;padding:8px 10px;font-size:.82rem"></select>
+          <button class="icon-btn" id="themeAuth" title="Theme">◐</button>
+        </div>
+      </div>
+
+      <div class="tab-row">
+        <button class="active" data-mode="user" data-i18n="tabUser">User</button>
+        <button data-mode="admin" data-i18n="tabAdmin">Admin</button>
+      </div>
+
+      <div class="field">
+        <label data-i18n="emailLabel">Email or username</label>
+        <input id="loginEmail" type="text" autocomplete="username" placeholder="name@uzswlu.uz" />
+      </div>
+      <div class="field">
+        <label data-i18n="passwordLabel">Password</label>
+        <div class="pw-wrap">
+          <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••" />
+          <button class="icon-btn" id="togglePw" type="button" data-i18n-title="showHide" title="Show / hide">👁</button>
+        </div>
+      </div>
+      <div class="row-between" style="margin:4px 0 16px">
+        <label class="check"><input type="checkbox" id="remember" /> <span data-i18n="rememberMe">Remember me</span></label>
+        <a href="#" style="font-size:.82rem" onclick="toast(t('demoNote'));return false" data-i18n="forgot">Forgot password?</a>
+      </div>
+      <button class="btn primary block" id="loginBtn" data-i18n="signIn">Sign in</button>
+      <div class="or"><span data-i18n="or">or</span></div>
+      <button class="btn block" id="guestBtn" data-i18n="continueGuest">Continue as guest</button>
+      <p style="font-size:.76rem;color:var(--ink-faint);text-align:center;margin:14px 0 0" data-i18n="demoHint">
+        Demo build — any email and password sign you in. Guests have limited features.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- APP                                                                  -->
+<!-- =================================================================== -->
+<div id="app" class="hidden">
+  <header class="topbar">
+    <button class="icon-btn hamb" id="hamb" aria-label="Menu">☰</button>
+    <div class="brand">
+      <span class="crest" id="crestTop"></span>
+      <div style="min-width:0">
+        <div class="t1" data-i18n="appShort">Internet Detector Pro</div>
+        <div class="t2" data-i18n="uniShort">Uzbekistan State World Languages University</div>
+      </div>
+    </div>
+    <div class="grow"></div>
+
+    <div class="switcher">
+      <button class="btn ghost sm" id="langBtn">🌐 <span id="langLabel">EN</span> ▾</button>
+      <div class="menu hidden" id="langMenu"></div>
+    </div>
+    <button class="icon-btn" id="themeBtn" title="Theme">◐</button>
+    <div class="switcher">
+      <button class="icon-btn" id="userBtn" title="Account">👤</button>
+      <div class="menu hidden" id="userMenu">
+        <div style="padding:9px 11px;border-bottom:1px solid var(--line-soft);margin-bottom:4px">
+          <b id="meName" style="font-size:.9rem">Guest</b>
+          <div id="meRole" style="font-size:.74rem;color:var(--ink-faint)"></div>
+        </div>
+        <button data-go="profile">👤 <span data-i18n="navProfile">Profile</span></button>
+        <button data-go="help">❓ <span data-i18n="navHelp">Help</span></button>
+        <button id="logoutBtn" style="color:var(--red)">�leave <span data-i18n="logout">Log out</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="side" id="side">
+      <nav id="nav"></nav>
+    </aside>
+
+    <main class="main" id="main"></main>
+  </div>
+</div>
+
+<div id="toast-host"></div>
+<div id="pop-host"></div>
+
+<!-- =================================================================== -->
+<!-- SCRIPT                                                               -->
+<!-- =================================================================== -->
+<script>
+/* ============================ tiny storage ============================ */
+const store = (()=>{ let mem={}; const ok=(()=>{try{localStorage.setItem('_t','1');localStorage.removeItem('_t');return true}catch(e){return false}})();
+  return {
+    get:k=>{try{return ok?JSON.parse(localStorage.getItem(k)):mem[k]}catch(e){return mem[k]}},
+    set:(k,v)=>{try{ok?localStorage.setItem(k,JSON.stringify(v)):mem[k]=v}catch(e){mem[k]=v}}
+  };
+})();
+
+/* ============================ i18n ============================ */
+const LANGS = {uz:"O‘zbek",ru:"Русский",en:"English",az:"Azərbaycan",zh:"中文"};
+const RTL = []; // none of these are RTL
+const I18N = {
+  en:{
+    uniShort:"Uzbekistan State World Languages University", appShort:"Internet Detector Pro",
+    heroEyebrow:"Academic originality, explained", heroTitle:"Internet Source Plagiarism Detector Pro",
+    heroLead:"Analyse texts in five languages, see every issue highlighted in place, get clear corrections, and produce an official originality certificate.",
+    heroP1:"Plagiarism & AI-writing estimates with explanations, never blind percentages",
+    heroP2:"Spelling, grammar and academic-style checks with one-click fixes",
+    heroP3:"PDF, DOCX, TXT, HTML, PPTX and image (OCR) support",
+    authorLine:"Created by Dilshod Xo‘jayev", signInTitle:"Sign in",
+    tabUser:"User", tabAdmin:"Admin", emailLabel:"Email or username", passwordLabel:"Password",
+    rememberMe:"Remember me", forgot:"Forgot password?", signIn:"Sign in", or:"or",
+    continueGuest:"Continue as guest", showHide:"Show / hide password",
+    demoHint:"Demo build — any email and password sign you in. Guests have limited features.",
+    demoNote:"Demo build: password recovery is handled by the server.",
+    navNew:"New analysis", navUpload:"Upload file", navPaste:"Paste text", navHistory:"Analysis history",
+    navReports:"Saved reports", navCerts:"Certificates", navLang:"Language settings", navProfile:"Profile",
+    navAdmin:"Admin panel", navHelp:"Help & instructions", logout:"Log out",
+    pasteTab:"Paste text", uploadTab:"Upload file", editorPlaceholder:"Paste or type the text to analyse…",
+    dropTitle:"Drop a file or click to browse", dropSub:"We extract the text automatically — images and scanned PDFs use OCR.",
+    words:"Words", chars:"Characters", sentences:"Sentences", detectedLang:"Detected language",
+    langAuto:"Auto-detect", analyze:"Analyse text", analyzing:"Analysing…", clear:"Clear",
+    sampleBtn:"Load sample", extracting:"Extracting text…", ocrRunning:"Running OCR…",
+    needText:"Please add some text first.", guestLimit:"Guests can analyse up to {n} words. Sign in for full texts.",
+    resultsTitle:"Results", originality:"Originality", finalScore:"Final score", grade:"Grade",
+    mPlag:"Plagiarism (est.)", mAI:"AI writing (est.)", mSpell:"Spelling", mGrammar:"Grammar", mStyle:"Style",
+    annotatedTitle:"Annotated text", legendSpell:"Spelling", legendGrammar:"Grammar", legendAwk:"Awkward",
+    legendAI:"AI-like", legendPlag:"Plagiarism", legendSug:"Suggestion",
+    issuesTitle:"Detected issues", noIssues:"No issues detected — nicely done.",
+    problemType:"Problem", explanation:"Why", suggestion:"Suggested fix", replace:"Replace", ignore:"Ignore",
+    typeSpell:"Spelling mistake", typeGrammar:"Grammar mistake", typeAwk:"Awkward / unclear sentence",
+    typeAI:"AI-like phrasing", typePlag:"Possible copied fragment", typeStyle:"Style issue",
+    sourcesTitle:"Source matching", sourcesOff:"Online source search is off. Showing a local duplication estimate only — no source links are invented. Turn on \u201cSearch the internet for sources\u201d to find real links.",
+    onlineSec:"Search the internet for sources", onlineDesc:"Automatically checks open web sources, academic publications, and university domains, then shows real links only.",
+    onlineKeyL:"Automatic internet search", onlineCxL:"Source search", onlineBackendL:"Automatic search", onlineBackendHint:"Automatic source checking uses internet search servers.", onlineGet:"Help", onlineSaveBtn:"Save settings", onlineSavedMsg:"Saved on this device.", onlineAutoHint:"Automatic Internet Server mode: web, academic and university sources are checked together.",
+    onlineNeedKeys:"Start the Internet Server mode to enable automatic source search.",
+    onlineSearching:"Searching the internet for matching sources\u2026", onlineFoundN:"real source(s) found online",
+    onlineNoneFound:"No matching internet sources were found for the distinctive phrases checked.",
+    onlineErrMsg:"Online search could not run", onlineQuotaMsg:"Check your internet connection and make sure Internet Server mode is running.",
+    onlinePlagLabel:"Online matches (verbatim phrases found on the web)", matchStrength:"match", foundOn:"found on", openSrc:"Open \u2197",
+    onlineSnippetNote:"Results are verified with search text and source-page text when accessible. Open each link to confirm the full source.",
+    similarity:"similarity", rewriteRec:"Recommendation: rephrase in your own words and cite the original.",
+    aiTitle:"AI-writing analysis", aiHuman:"Human-writing probability", aiBurst:"Burstiness", aiPerplex:"Perplexity (proxy)",
+    aiWhy:"Flagged sentences read as evenly structured with generic phrasing — typical of AI drafts, though not proof.",
+    disclaimer:"AI-detection and plagiarism results are probability-based estimates and may not be 100% accurate. A human reviewer should make the final decision.",
+    saveReport:"Save report", makeCert:"Generate certificate", reportSaved:"Report saved.", replaced:"Replaced.", ignored:"Ignored.",
+    gradeExcellent:"Excellent", gradeGood:"Good", gradeSatisf:"Satisfactory", gradeUnsatisf:"Unsatisfactory",
+    historyTitle:"Analysis history", historyEmpty:"No analyses yet. Run your first one from New analysis.",
+    reportsTitle:"Saved reports", reportsEmpty:"No saved reports yet.", view:"View", delete:"Delete", download:"Download",
+    certsTitle:"Certificates", certsEmpty:"No certificates yet. Generate one from a results page.",
+    colTitle:"Title", colDate:"Date", colLang:"Language", colScore:"Score", colGrade:"Grade", colActions:"Actions", colOrig:"Originality",
+    profileTitle:"Profile", fullName:"Full name", role:"Role", institution:"Institution", save:"Save changes", saved:"Saved.",
+    langTitle:"Language settings", langDesc:"Choose the interface language. Every menu, report and certificate field follows your choice.",
+    adminTitle:"Admin panel", adminUsers:"Users", adminReports:"Reports", adminDicts:"Dictionaries", adminLogo:"Platform logo", adminStats:"Statistics",
+    totalUsers:"Users", totalReports:"Reports", avgOrig:"Avg. originality", flagged:"High-risk", exportXls:"Export CSV", exportPdf:"Print / PDF",
+    uploadLogo:"Upload logo", logoHint:"Upload a PNG/SVG to replace the placeholder crest everywhere.", manageDicts:"Update dictionaries",
+    dictNote:"Dictionary files are managed by the server. This build ships a compact English checker plus cross-language structural checks.",
+    helpTitle:"Help & instructions", reportTitle:"Originality report",
+    rUser:"User", rDate:"Date & time", rInst:"Institution", rTextTitle:"Text title", rLang:"Language", rWords:"Words", rChars:"Characters",
+    rIssues:"Issue summary", rRecs:"Recommendations", untitled:"Untitled text",
+    certHeading:"Certificate of Originality", certSub:"This certifies the analysis of the submitted academic text",
+    certAwardedTo:"Awarded to", certTextTitle:"Text title", certDate:"Analysis date", certOrig:"Originality",
+    certFinal:"Final score", certGrade:"Grade", certId:"Certificate ID", certVerify:"Scan to verify", certSig:"Authorised signature",
+    certGenBy:"Generated by Internet Source Plagiarism Detector Pro", certSeal:"VERIFIED ORIGINALITY",
+    dlPdf:"Save as PDF", dlPng:"Download PNG", dlJpg:"Download JPG", backResults:"Back to results",
+    welcomeBack:"Welcome back", guestMode:"Guest mode", recAvoid:"Reduce reused phrasing and add your own analysis and citations.",
+    recVary:"Vary sentence length and add a personal viewpoint to sound more human.", recProof:"Proofread the flagged spelling and grammar items.",
+    confirmDelete:"Delete this item?", everythingGood:"Everything looks good here."
+  },
+  uz:{
+    uniShort:"O‘zbekiston davlat jahon tillari universiteti", appShort:"Internet Detector Pro",
+    heroEyebrow:"Akademik originallik — izohlar bilan", heroTitle:"Ko‘p tilli Plagiat va AI yozuvni aniqlovchi Pro",
+    heroLead:"Matnlarni besh tilda tahlil qiling, har bir kamchilikni joyida ko‘ring, aniq tuzatishlar oling va rasmiy originallik sertifikatini yarating.",
+    heroP1:"Plagiat va AI yozuv baholari — izohlar bilan, quruq foizlarsiz",
+    heroP2:"Imlo, grammatika va akademik uslub tekshiruvi bir bosishda",
+    heroP3:"PDF, DOCX, TXT, HTML, PPTX va rasm (OCR) qo‘llab-quvvatlanadi",
+    authorLine:"Muallif: Dilshod Xo‘jayev", signInTitle:"Kirish",
+    tabUser:"Foydalanuvchi", tabAdmin:"Administrator", emailLabel:"Email yoki login", passwordLabel:"Parol",
+    rememberMe:"Meni eslab qol", forgot:"Parolni unutdingizmi?", signIn:"Kirish", or:"yoki",
+    continueGuest:"Mehmon sifatida davom etish", showHide:"Parolni ko‘rsatish / yashirish",
+    demoHint:"Demo: istalgan email va parol bilan kirish mumkin. Mehmonlar uchun imkoniyatlar cheklangan.",
+    demoNote:"Demo: parolni tiklash server orqali amalga oshiriladi.",
+    navNew:"Yangi tahlil", navUpload:"Fayl yuklash", navPaste:"Matn kiritish", navHistory:"Tahlillar tarixi",
+    navReports:"Saqlangan hisobotlar", navCerts:"Sertifikatlar", navLang:"Til sozlamalari", navProfile:"Profil",
+    navAdmin:"Admin panel", navHelp:"Yordam", logout:"Chiqish",
+    pasteTab:"Matn kiritish", uploadTab:"Fayl yuklash", editorPlaceholder:"Tahlil qilinadigan matnni kiriting…",
+    dropTitle:"Faylni tashlang yoki tanlash uchun bosing", dropSub:"Matn avtomatik ajratiladi — rasm va skan PDFlarda OCR ishlatiladi.",
+    words:"So‘zlar", chars:"Belgilar", sentences:"Gaplar", detectedLang:"Aniqlangan til",
+    langAuto:"Avtomatik", analyze:"Matnni tahlil qilish", analyzing:"Tahlil qilinmoqda…", clear:"Tozalash",
+    sampleBtn:"Namuna yuklash", extracting:"Matn ajratilmoqda…", ocrRunning:"OCR ishlamoqda…",
+    needText:"Avval matn kiriting.", guestLimit:"Mehmonlar {n} so‘zgacha tahlil qila oladi. To‘liq matn uchun tizimga kiring.",
+    resultsTitle:"Natijalar", originality:"Originallik", finalScore:"Yakuniy ball", grade:"Baho",
+    mPlag:"Plagiat (taxminiy)", mAI:"AI yozuv (taxminiy)", mSpell:"Imlo", mGrammar:"Grammatika", mStyle:"Uslub",
+    annotatedTitle:"Belgilangan matn", legendSpell:"Imlo", legendGrammar:"Grammatika", legendAwk:"G‘aliz",
+    legendAI:"AI-ga o‘xshash", legendPlag:"Plagiat", legendSug:"Taklif",
+    issuesTitle:"Aniqlangan kamchiliklar", noIssues:"Kamchilik topilmadi — barakalla.",
+    problemType:"Muammo", explanation:"Sababi", suggestion:"Taklif", replace:"Almashtirish", ignore:"E’tiborsiz",
+    typeSpell:"Imlo xatosi", typeGrammar:"Grammatik xato", typeAwk:"G‘aliz / noaniq gap",
+    typeAI:"AI-ga o‘xshash ifoda", typePlag:"Ko‘chirilgan bo‘lishi mumkin", typeStyle:"Uslub kamchiligi",
+    sourcesTitle:"Manba moslashuvi", sourcesOff:"Internetdan qidirish o‘chiq. Faqat mahalliy takror bahosi ko‘rsatilmoqda — soxta havolalar yaratilmaydi. Haqiqiy havolalarni topish uchun “Manbalarni internetdan qidirish”ni yoqing.",
+    onlineSec:"Manbalarni internetdan qidirish", onlineDesc:"Ochiq web, ilmiy maqolalar va universitet domenlarini birlashtirib avtomatik tekshiradi; faqat haqiqiy havolalarni ko‘rsatadi.",
+    onlineKeyL:"Avtomatik internet qidiruvi", onlineCxL:"Manba qidiruvi", onlineBackendL:"Avtomatik qidiruv", onlineBackendHint:"Avtomatik manba tekshiruvi internet qidiruv serverlari orqali ishlaydi.", onlineGet:"Yordam", onlineSaveBtn:"Sozlamani saqlash", onlineSavedMsg:"Shu qurilmada saqlandi.", onlineAutoHint:"Internet Server rejimi: web, ilmiy va universitet manbalari birgalikda avtomatik tekshiriladi.",
+    onlineNeedKeys:"Avtomatik internet qidiruvi uchun Internet Server rejimini ishga tushiring.",
+    onlineSearching:"Internetdan mos manbalar qidirilmoqda\u2026", onlineFoundN:"ta mos manba internetdan topildi",
+    onlineNoneFound:"Tekshirilgan ajralib turuvchi iboralar uchun internetdan mos manba topilmadi.",
+    onlineErrMsg:"Internetdan qidirib bo‘lmadi", onlineQuotaMsg:"Internet yoki lokal server ishlayotganini tekshiring.",
+    onlinePlagLabel:"Internet mosligi (internetda topilgan aynan iboralar)", matchStrength:"moslik", foundOn:"manbada topildi", openSrc:"Ochish \u2197",
+    onlineSnippetNote:"Natijalar qidiruv matni va ochilgan manba sahifasi parchalariga tayangan. To‘liq tasdiqlash uchun havolani oching.",
+    similarity:"o‘xshashlik", rewriteRec:"Tavsiya: o‘z so‘zlaringiz bilan qayta yozing va manbani ko‘rsating.",
+    aiTitle:"AI yozuv tahlili", aiHuman:"Inson yozuvi ehtimoli", aiBurst:"Burstiness", aiPerplex:"Perpleksiya (proksi)",
+    aiWhy:"Belgilangan gaplar bir xil tuzilgan va umumiy iboralarga ega — AI uchun xos, ammo dalil emas.",
+    disclaimer:"AI va plagiat natijalari ehtimolga asoslangan baholar bo‘lib, 100% aniq emas. Yakuniy qarorni inson ko‘rib chiqishi kerak.",
+    saveReport:"Hisobotni saqlash", makeCert:"Sertifikat yaratish", reportSaved:"Hisobot saqlandi.", replaced:"Almashtirildi.", ignored:"E’tiborsiz qoldirildi.",
+    gradeExcellent:"A’lo", gradeGood:"Yaxshi", gradeSatisf:"Qoniqarli", gradeUnsatisf:"Qoniqarsiz",
+    historyTitle:"Tahlillar tarixi", historyEmpty:"Hozircha tahlil yo‘q. Yangi tahlildan boshlang.",
+    reportsTitle:"Saqlangan hisobotlar", reportsEmpty:"Saqlangan hisobotlar yo‘q.", view:"Ko‘rish", delete:"O‘chirish", download:"Yuklab olish",
+    certsTitle:"Sertifikatlar", certsEmpty:"Sertifikatlar yo‘q. Natijalar sahifasidan yarating.",
+    colTitle:"Sarlavha", colDate:"Sana", colLang:"Til", colScore:"Ball", colGrade:"Baho", colActions:"Amallar", colOrig:"Originallik",
+    profileTitle:"Profil", fullName:"To‘liq ism", role:"Lavozim", institution:"Muassasa", save:"Saqlash", saved:"Saqlandi.",
+    langTitle:"Til sozlamalari", langDesc:"Interfeys tilini tanlang. Barcha menyu, hisobot va sertifikat maydonlari shunga moslashadi.",
+    adminTitle:"Admin panel", adminUsers:"Foydalanuvchilar", adminReports:"Hisobotlar", adminDicts:"Lug‘atlar", adminLogo:"Platforma logosi", adminStats:"Statistika",
+    totalUsers:"Foydalanuvchilar", totalReports:"Hisobotlar", avgOrig:"O‘rtacha originallik", flagged:"Yuqori xavf", exportXls:"CSV eksport", exportPdf:"Chop / PDF",
+    uploadLogo:"Logo yuklash", logoHint:"Joriy belgini almashtirish uchun PNG/SVG yuklang.", manageDicts:"Lug‘atlarni yangilash",
+    dictNote:"Lug‘at fayllari server orqali boshqariladi. Ushbu versiyada ixcham inglizcha tekshiruvchi va tillararo strukturaviy tekshiruvlar bor.",
+    helpTitle:"Yordam va ko‘rsatmalar", reportTitle:"Originallik hisoboti",
+    rUser:"Foydalanuvchi", rDate:"Sana va vaqt", rInst:"Muassasa", rTextTitle:"Matn sarlavhasi", rLang:"Til", rWords:"So‘zlar", rChars:"Belgilar",
+    rIssues:"Kamchiliklar xulosasi", rRecs:"Tavsiyalar", untitled:"Sarlavhasiz matn",
+    certHeading:"Originallik sertifikati", certSub:"Topshirilgan akademik matn tahlilini tasdiqlaydi",
+    certAwardedTo:"Quyidagiga beriladi", certTextTitle:"Matn sarlavhasi", certDate:"Tahlil sanasi", certOrig:"Originallik",
+    certFinal:"Yakuniy ball", certGrade:"Baho", certId:"Sertifikat ID", certVerify:"Tekshirish uchun skanerlang", certSig:"Vakolatli imzo",
+    certGenBy:"Internet Source Plagiarism Detector Pro tomonidan yaratilgan", certSeal:"TASDIQLANGAN ORIGINALLIK",
+    dlPdf:"PDF sifatida saqlash", dlPng:"PNG yuklab olish", dlJpg:"JPG yuklab olish", backResults:"Natijalarga qaytish",
+    welcomeBack:"Xush kelibsiz", guestMode:"Mehmon rejimi", recAvoid:"Takror iboralarni kamaytiring, o‘z tahlilingiz va manbalarni qo‘shing.",
+    recVary:"Gap uzunligini o‘zgartiring va shaxsiy nuqtai nazar qo‘shing.", recProof:"Belgilangan imlo va grammatika xatolarini tuzating.",
+    confirmDelete:"Ushbu yozuv o‘chirilsinmi?", everythingGood:"Bu yerda hammasi joyida."
+  },
+  ru:{
+    uniShort:"Узбекский государственный университет мировых языков", appShort:"Internet Detector Pro",
+    heroEyebrow:"Академическая оригинальность — с пояснениями", heroTitle:"Многоязычный детектор плагиата и ИИ-текста Pro",
+    heroLead:"Анализируйте тексты на пяти языках, видьте каждую ошибку прямо в тексте, получайте понятные исправления и официальный сертификат оригинальности.",
+    heroP1:"Оценки плагиата и ИИ-письма с пояснениями, а не просто проценты",
+    heroP2:"Проверка орфографии, грамматики и стиля с исправлением в один клик",
+    heroP3:"Поддержка PDF, DOCX, TXT, HTML, PPTX и изображений (OCR)",
+    authorLine:"Автор: Dilshod Xo‘jayev", signInTitle:"Вход",
+    tabUser:"Пользователь", tabAdmin:"Администратор", emailLabel:"Email или логин", passwordLabel:"Пароль",
+    rememberMe:"Запомнить меня", forgot:"Забыли пароль?", signIn:"Войти", or:"или",
+    continueGuest:"Войти как гость", showHide:"Показать / скрыть пароль",
+    demoHint:"Демо: вход с любым email и паролем. У гостей ограниченные функции.",
+    demoNote:"Демо: восстановление пароля выполняется на сервере.",
+    navNew:"Новый анализ", navUpload:"Загрузить файл", navPaste:"Вставить текст", navHistory:"История анализов",
+    navReports:"Сохранённые отчёты", navCerts:"Сертификаты", navLang:"Язык интерфейса", navProfile:"Профиль",
+    navAdmin:"Панель администратора", navHelp:"Помощь", logout:"Выйти",
+    pasteTab:"Вставить текст", uploadTab:"Загрузить файл", editorPlaceholder:"Вставьте или введите текст для анализа…",
+    dropTitle:"Перетащите файл или нажмите для выбора", dropSub:"Текст извлекается автоматически — для изображений и сканов используется OCR.",
+    words:"Слова", chars:"Символы", sentences:"Предложения", detectedLang:"Определённый язык",
+    langAuto:"Автоопределение", analyze:"Анализировать текст", analyzing:"Анализ…", clear:"Очистить",
+    sampleBtn:"Загрузить пример", extracting:"Извлечение текста…", ocrRunning:"Выполняется OCR…",
+    needText:"Сначала добавьте текст.", guestLimit:"Гости могут анализировать до {n} слов. Войдите для полных текстов.",
+    resultsTitle:"Результаты", originality:"Оригинальность", finalScore:"Итоговый балл", grade:"Оценка",
+    mPlag:"Плагиат (оценка)", mAI:"ИИ-текст (оценка)", mSpell:"Орфография", mGrammar:"Грамматика", mStyle:"Стиль",
+    annotatedTitle:"Размеченный текст", legendSpell:"Орфография", legendGrammar:"Грамматика", legendAwk:"Неуклюже",
+    legendAI:"Похоже на ИИ", legendPlag:"Плагиат", legendSug:"Предложение",
+    issuesTitle:"Обнаруженные проблемы", noIssues:"Проблем не найдено — отлично.",
+    problemType:"Проблема", explanation:"Почему", suggestion:"Исправление", replace:"Заменить", ignore:"Игнорировать",
+    typeSpell:"Орфографическая ошибка", typeGrammar:"Грамматическая ошибка", typeAwk:"Неуклюжее / неясное предложение",
+    typeAI:"Формулировка как у ИИ", typePlag:"Возможно скопировано", typeStyle:"Стилевая проблема",
+    sourcesTitle:"Поиск источников", sourcesOff:"Поиск в интернете выключен. Показана только локальная оценка дублирования — ссылки не выдумываются. Включите «Искать источники в интернете», чтобы найти реальные ссылки.",
+    onlineSec:"Искать источники в интернете", onlineDesc:"Находит реальные веб-страницы с совпадающими фразами и показывает их ссылки.",
+    onlineKeyL:"Автоматический интернет-поиск", onlineCxL:"Поиск источников", onlineBackendL:"Автоматический поиск", onlineBackendHint:"Автоматическая проверка источников работает через локальный сервер и открытые веб-индексы.", onlineGet:"Помощь", onlineSaveBtn:"Сохранить настройки", onlineSavedMsg:"Сохранено на этом устройстве.", onlineAutoHint:"Автоматический поиск включён: программа сама проверяет открытые интернет-источники.",
+    onlineNeedKeys:"Запустите локальный сервер, чтобы включить автоматический поиск интернет-источников.",
+    onlineSearching:"Поиск совпадающих источников в интернете\u2026", onlineFoundN:"совпадающих источника(ов) найдено в интернете",
+    onlineNoneFound:"По проверенным характерным фразам совпадающих интернет-источников не найдено.",
+    onlineErrMsg:"Не удалось выполнить онлайн-поиск", onlineQuotaMsg:"Проверьте подключение к интернету и работу локального сервера.",
+    onlinePlagLabel:"Совпадения в интернете (дословные фразы, найденные в сети)", matchStrength:"совпадение", foundOn:"найдено на", openSrc:"Открыть \u2197",
+    onlineSnippetNote:"Совпадения основаны на интернет-фрагментах и тексте страниц; откройте ссылку для полной проверки.",
+    similarity:"сходство", rewriteRec:"Рекомендация: перефразируйте своими словами и укажите источник.",
+    aiTitle:"Анализ ИИ-письма", aiHuman:"Вероятность человеческого письма", aiBurst:"Вариативность", aiPerplex:"Перплексия (прокси)",
+    aiWhy:"Отмеченные предложения равномерны по структуре и шаблонны — типично для ИИ, но не доказательство.",
+    disclaimer:"Результаты по ИИ и плагиату — вероятностные оценки и могут быть неточными. Окончательное решение принимает человек.",
+    saveReport:"Сохранить отчёт", makeCert:"Создать сертификат", reportSaved:"Отчёт сохранён.", replaced:"Заменено.", ignored:"Игнорировано.",
+    gradeExcellent:"Отлично", gradeGood:"Хорошо", gradeSatisf:"Удовлетворительно", gradeUnsatisf:"Неудовлетворительно",
+    historyTitle:"История анализов", historyEmpty:"Анализов пока нет. Начните с «Новый анализ».",
+    reportsTitle:"Сохранённые отчёты", reportsEmpty:"Сохранённых отчётов нет.", view:"Открыть", delete:"Удалить", download:"Скачать",
+    certsTitle:"Сертификаты", certsEmpty:"Сертификатов нет. Создайте на странице результатов.",
+    colTitle:"Название", colDate:"Дата", colLang:"Язык", colScore:"Балл", colGrade:"Оценка", colActions:"Действия", colOrig:"Оригинальность",
+    profileTitle:"Профиль", fullName:"Полное имя", role:"Роль", institution:"Учреждение", save:"Сохранить", saved:"Сохранено.",
+    langTitle:"Язык интерфейса", langDesc:"Выберите язык интерфейса. Все меню, отчёты и поля сертификата изменятся.",
+    adminTitle:"Панель администратора", adminUsers:"Пользователи", adminReports:"Отчёты", adminDicts:"Словари", adminLogo:"Логотип платформы", adminStats:"Статистика",
+    totalUsers:"Пользователи", totalReports:"Отчёты", avgOrig:"Ср. оригинальность", flagged:"Высокий риск", exportXls:"Экспорт CSV", exportPdf:"Печать / PDF",
+    uploadLogo:"Загрузить логотип", logoHint:"Загрузите PNG/SVG, чтобы заменить эмблему везде.", manageDicts:"Обновить словари",
+    dictNote:"Файлы словарей управляются сервером. В этой сборке есть компактная проверка английского и межъязыковые структурные проверки.",
+    helpTitle:"Помощь и инструкции", reportTitle:"Отчёт об оригинальности",
+    rUser:"Пользователь", rDate:"Дата и время", rInst:"Учреждение", rTextTitle:"Название текста", rLang:"Язык", rWords:"Слова", rChars:"Символы",
+    rIssues:"Сводка проблем", rRecs:"Рекомендации", untitled:"Текст без названия",
+    certHeading:"Сертификат оригинальности", certSub:"Подтверждает анализ представленного академического текста",
+    certAwardedTo:"Выдан", certTextTitle:"Название текста", certDate:"Дата анализа", certOrig:"Оригинальность",
+    certFinal:"Итоговый балл", certGrade:"Оценка", certId:"ID сертификата", certVerify:"Сканируйте для проверки", certSig:"Уполномоченная подпись",
+    certGenBy:"Создано Internet Source Plagiarism Detector Pro", certSeal:"ПОДТВЕРЖДЁННАЯ ОРИГИНАЛЬНОСТЬ",
+    dlPdf:"Сохранить как PDF", dlPng:"Скачать PNG", dlJpg:"Скачать JPG", backResults:"К результатам",
+    welcomeBack:"С возвращением", guestMode:"Гостевой режим", recAvoid:"Сократите заимствованные формулировки, добавьте свой анализ и цитаты.",
+    recVary:"Меняйте длину предложений и добавьте личную точку зрения.", recProof:"Исправьте отмеченные орфографию и грамматику.",
+    confirmDelete:"Удалить эту запись?", everythingGood:"Здесь всё в порядке."
+  },
+  az:{
+    uniShort:"Özbəkistan Dövlət Dünya Dilləri Universiteti", appShort:"Internet Detector Pro",
+    heroEyebrow:"Akademik orijinallıq — izahlarla", heroTitle:"Çoxdilli Plagiat və Süni İntellekt Yazı Detektoru Pro",
+    heroLead:"Mətnləri beş dildə təhlil edin, hər qüsuru mətnin içində görün, aydın düzəlişlər alın və rəsmi orijinallıq sertifikatı yaradın.",
+    heroP1:"Plagiat və Sİ yazı qiymətləndirmələri izahlarla, quru faizlərlə deyil",
+    heroP2:"Orfoqrafiya, qrammatika və akademik üslub yoxlaması bir kliklə",
+    heroP3:"PDF, DOCX, TXT, HTML, PPTX və şəkil (OCR) dəstəyi",
+    authorLine:"Müəllif: Dilshod Xo‘jayev", signInTitle:"Giriş",
+    tabUser:"İstifadəçi", tabAdmin:"Administrator", emailLabel:"Email və ya istifadəçi adı", passwordLabel:"Şifrə",
+    rememberMe:"Məni xatırla", forgot:"Şifrəni unutdunuz?", signIn:"Daxil ol", or:"və ya",
+    continueGuest:"Qonaq kimi davam et", showHide:"Şifrəni göstər / gizlət",
+    demoHint:"Demo: istənilən email və şifrə ilə daxil olun. Qonaqlar üçün məhdud funksiyalar.",
+    demoNote:"Demo: şifrə bərpası serverdə həyata keçirilir.",
+    navNew:"Yeni təhlil", navUpload:"Fayl yüklə", navPaste:"Mətn daxil et", navHistory:"Təhlil tarixçəsi",
+    navReports:"Saxlanmış hesabatlar", navCerts:"Sertifikatlar", navLang:"Dil ayarları", navProfile:"Profil",
+    navAdmin:"Admin panel", navHelp:"Kömək", logout:"Çıxış",
+    pasteTab:"Mətn daxil et", uploadTab:"Fayl yüklə", editorPlaceholder:"Təhlil ediləcək mətni daxil edin…",
+    dropTitle:"Faylı buraxın və ya seçmək üçün klikləyin", dropSub:"Mətn avtomatik çıxarılır — şəkil və skan PDF-lər üçün OCR istifadə olunur.",
+    words:"Sözlər", chars:"Simvollar", sentences:"Cümlələr", detectedLang:"Aşkarlanan dil",
+    langAuto:"Avtomatik", analyze:"Mətni təhlil et", analyzing:"Təhlil olunur…", clear:"Təmizlə",
+    sampleBtn:"Nümunə yüklə", extracting:"Mətn çıxarılır…", ocrRunning:"OCR işləyir…",
+    needText:"Əvvəlcə mətn əlavə edin.", guestLimit:"Qonaqlar {n} sözə qədər təhlil edə bilər. Tam mətn üçün daxil olun.",
+    resultsTitle:"Nəticələr", originality:"Orijinallıq", finalScore:"Yekun bal", grade:"Qiymət",
+    mPlag:"Plagiat (təxmini)", mAI:"Sİ yazı (təxmini)", mSpell:"Orfoqrafiya", mGrammar:"Qrammatika", mStyle:"Üslub",
+    annotatedTitle:"İşarələnmiş mətn", legendSpell:"Orfoqrafiya", legendGrammar:"Qrammatika", legendAwk:"Yöndəmsiz",
+    legendAI:"Sİ-yə bənzər", legendPlag:"Plagiat", legendSug:"Təklif",
+    issuesTitle:"Aşkarlanan problemlər", noIssues:"Problem tapılmadı — əla.",
+    problemType:"Problem", explanation:"Səbəb", suggestion:"Təklif", replace:"Əvəz et", ignore:"Nəzərə alma",
+    typeSpell:"Orfoqrafiya xətası", typeGrammar:"Qrammatik xəta", typeAwk:"Yöndəmsiz / qeyri-aydın cümlə",
+    typeAI:"Sİ-yə bənzər ifadə", typePlag:"Köçürülmüş ola bilər", typeStyle:"Üslub problemi",
+    sourcesTitle:"Mənbə uyğunluğu", sourcesOff:"İnternet axtarışı söndürülüb. Yalnız lokal təkrar qiyməti göstərilir — saxta keçidlər yaradılmır. Real keçidləri tapmaq üçün “Mənbələri internetdə axtar”ı yandırın.",
+    onlineSec:"Mənbələri internetdə axtar", onlineDesc:"Açıq web, elmi mənbələr və universitet domenlərini birlikdə avtomatik yoxlayır; yalnız real keçidləri göstərir.",
+    onlineKeyL:"Avtomatik internet axtarışı", onlineCxL:"Mənbə axtarışı", onlineBackendL:"Avtomatik axtarış", onlineBackendHint:"Avtomatik mənbə yoxlaması internet axtarış serverləri ilə işləyir.", onlineGet:"Yardım", onlineSaveBtn:"Tənzimləməni saxla", onlineSavedMsg:"Bu cihazda saxlanıldı.", onlineAutoHint:"Internet Server rejimi: web, elmi və universitet mənbələri birlikdə avtomatik yoxlanılır.",
+    onlineNeedKeys:"Avtomatik internet axtarışı üçün Internet Server rejimini başladın.",
+    onlineSearching:"İnternetdə uyğun mənbələr axtarılır\u2026", onlineFoundN:"uyğun mənbə internetdə tapıldı",
+    onlineNoneFound:"Yoxlanılan fərqli ifadələr üçün uyğun internet mənbəsi tapılmadı.",
+    onlineErrMsg:"Onlayn axtarış aparıla bilmədi", onlineQuotaMsg:"İnternet bağlantısını və lokal serverin işlədiyini yoxlayın.",
+    onlinePlagLabel:"İnternet uyğunluğu (internetdə tapılan eyni ifadələr)", matchStrength:"uyğunluq", foundOn:"tapıldı", openSrc:"Aç \u2197",
+    onlineSnippetNote:"Uyğunluqlar internet axtarışı və mənbə səhifələrindəki parçalara əsaslanır; tam yoxlama üçün keçidi açın.",
+    similarity:"oxşarlıq", rewriteRec:"Tövsiyə: öz sözlərinizlə yenidən yazın və mənbəni göstərin.",
+    aiTitle:"Sİ yazı təhlili", aiHuman:"İnsan yazısı ehtimalı", aiBurst:"Dəyişkənlik", aiPerplex:"Perpleksiya (proksi)",
+    aiWhy:"İşarələnmiş cümlələr bərabər quruluşlu və ümumi ifadəlidir — Sİ üçün tipik, lakin sübut deyil.",
+    disclaimer:"Sİ və plagiat nəticələri ehtimala əsaslanan qiymətləndirmələrdir və 100% dəqiq olmaya bilər. Yekun qərarı insan verməlidir.",
+    saveReport:"Hesabatı saxla", makeCert:"Sertifikat yarat", reportSaved:"Hesabat saxlanıldı.", replaced:"Əvəz edildi.", ignored:"Nəzərə alınmadı.",
+    gradeExcellent:"Əla", gradeGood:"Yaxşı", gradeSatisf:"Kafi", gradeUnsatisf:"Qeyri-kafi",
+    historyTitle:"Təhlil tarixçəsi", historyEmpty:"Hələ təhlil yoxdur. Yeni təhlildən başlayın.",
+    reportsTitle:"Saxlanmış hesabatlar", reportsEmpty:"Saxlanmış hesabat yoxdur.", view:"Bax", delete:"Sil", download:"Yüklə",
+    certsTitle:"Sertifikatlar", certsEmpty:"Sertifikat yoxdur. Nəticələr səhifəsindən yaradın.",
+    colTitle:"Başlıq", colDate:"Tarix", colLang:"Dil", colScore:"Bal", colGrade:"Qiymət", colActions:"Əməliyyatlar", colOrig:"Orijinallıq",
+    profileTitle:"Profil", fullName:"Tam ad", role:"Vəzifə", institution:"Müəssisə", save:"Yadda saxla", saved:"Saxlanıldı.",
+    langTitle:"Dil ayarları", langDesc:"İnterfeys dilini seçin. Bütün menyular, hesabatlar və sertifikat sahələri buna uyğunlaşır.",
+    adminTitle:"Admin panel", adminUsers:"İstifadəçilər", adminReports:"Hesabatlar", adminDicts:"Lüğətlər", adminLogo:"Platforma loqosu", adminStats:"Statistika",
+    totalUsers:"İstifadəçilər", totalReports:"Hesabatlar", avgOrig:"Orta orijinallıq", flagged:"Yüksək risk", exportXls:"CSV ixrac", exportPdf:"Çap / PDF",
+    uploadLogo:"Loqo yüklə", logoHint:"Hər yerdə nişanı əvəz etmək üçün PNG/SVG yükləyin.", manageDicts:"Lüğətləri yenilə",
+    dictNote:"Lüğət faylları serverdə idarə olunur. Bu versiyada yığcam ingilis yoxlayıcı və dillərarası struktur yoxlamaları var.",
+    helpTitle:"Kömək və təlimatlar", reportTitle:"Orijinallıq hesabatı",
+    rUser:"İstifadəçi", rDate:"Tarix və vaxt", rInst:"Müəssisə", rTextTitle:"Mətn başlığı", rLang:"Dil", rWords:"Sözlər", rChars:"Simvollar",
+    rIssues:"Problemlərin xülasəsi", rRecs:"Tövsiyələr", untitled:"Başlıqsız mətn",
+    certHeading:"Orijinallıq Sertifikatı", certSub:"Təqdim olunan akademik mətnin təhlilini təsdiqləyir",
+    certAwardedTo:"Təqdim olunur", certTextTitle:"Mətn başlığı", certDate:"Təhlil tarixi", certOrig:"Orijinallıq",
+    certFinal:"Yekun bal", certGrade:"Qiymət", certId:"Sertifikat ID", certVerify:"Yoxlamaq üçün skan edin", certSig:"Səlahiyyətli imza",
+    certGenBy:"Internet Source Plagiarism Detector Pro tərəfindən yaradılıb", certSeal:"TƏSDİQLƏNMİŞ ORİJİNALLIQ",
+    dlPdf:"PDF kimi saxla", dlPng:"PNG yüklə", dlJpg:"JPG yüklə", backResults:"Nəticələrə qayıt",
+    welcomeBack:"Xoş gəlmisiniz", guestMode:"Qonaq rejimi", recAvoid:"Təkrar ifadələri azaldın, öz təhlilinizi və mənbələri əlavə edin.",
+    recVary:"Cümlə uzunluğunu dəyişin və şəxsi baxış əlavə edin.", recProof:"İşarələnmiş orfoqrafiya və qrammatikanı düzəldin.",
+    confirmDelete:"Bu qeyd silinsin?", everythingGood:"Burada hər şey qaydasındadır."
+  },
+  zh:{
+    uniShort:"乌兹别克斯坦国立世界语言大学", appShort:"Internet Detector Pro",
+    heroEyebrow:"学术原创性，附带解释", heroTitle:"多语言抄袭与 AI 写作检测专业版",
+    heroLead:"以五种语言分析文本，在原文中标出每个问题，提供清晰修改建议，并生成正式的原创性证书。",
+    heroP1:"抄袭与 AI 写作的概率评估，附带解释，而非空洞的百分比",
+    heroP2:"拼写、语法与学术风格检查，一键修正",
+    heroP3:"支持 PDF、DOCX、TXT、HTML、PPTX 及图片（OCR）",
+    authorLine:"作者：Dilshod Xo‘jayev", signInTitle:"登录",
+    tabUser:"用户", tabAdmin:"管理员", emailLabel:"邮箱或用户名", passwordLabel:"密码",
+    rememberMe:"记住我", forgot:"忘记密码？", signIn:"登录", or:"或",
+    continueGuest:"以访客身份继续", showHide:"显示 / 隐藏密码",
+    demoHint:"演示版：任意邮箱和密码均可登录。访客功能受限。",
+    demoNote:"演示版：密码找回由后端处理。",
+    navNew:"新建分析", navUpload:"上传文件", navPaste:"粘贴文本", navHistory:"分析历史",
+    navReports:"已保存报告", navCerts:"证书", navLang:"语言设置", navProfile:"个人资料",
+    navAdmin:"管理面板", navHelp:"帮助", logout:"退出登录",
+    pasteTab:"粘贴文本", uploadTab:"上传文件", editorPlaceholder:"粘贴或输入要分析的文本…",
+    dropTitle:"拖入文件或点击选择", dropSub:"自动提取文本——图片和扫描 PDF 使用 OCR。",
+    words:"词数", chars:"字符", sentences:"句子", detectedLang:"识别语言",
+    langAuto:"自动检测", analyze:"分析文本", analyzing:"分析中…", clear:"清除",
+    sampleBtn:"载入示例", extracting:"正在提取文本…", ocrRunning:"正在运行 OCR…",
+    needText:"请先输入文本。", guestLimit:"访客最多分析 {n} 个词。登录可分析完整文本。",
+    resultsTitle:"结果", originality:"原创性", finalScore:"最终分数", grade:"等级",
+    mPlag:"抄袭（估算）", mAI:"AI 写作（估算）", mSpell:"拼写", mGrammar:"语法", mStyle:"风格",
+    annotatedTitle:"批注文本", legendSpell:"拼写", legendGrammar:"语法", legendAwk:"生硬",
+    legendAI:"疑似 AI", legendPlag:"抄袭", legendSug:"建议",
+    issuesTitle:"检测到的问题", noIssues:"未发现问题——做得好。",
+    problemType:"问题", explanation:"原因", suggestion:"建议修改", replace:"替换", ignore:"忽略",
+    typeSpell:"拼写错误", typeGrammar:"语法错误", typeAwk:"生硬 / 不清晰的句子",
+    typeAI:"疑似 AI 措辞", typePlag:"可能复制的片段", typeStyle:"风格问题",
+    sourcesTitle:"来源匹配", sourcesOff:"联网搜索已关闭。此处仅显示本地重复估算——不会编造来源链接。开启“联网搜索来源”以查找真实链接。",
+    onlineSec:"联网搜索来源", onlineDesc:"查找包含匹配短语的真实网页并显示其链接。",
+    onlineKeyL:"自动互联网搜索", onlineCxL:"来源搜索", onlineBackendL:"自动搜索", onlineBackendHint:"自动来源检查通过本地服务器和开放网络索引运行。", onlineGet:"帮助", onlineSaveBtn:"保存设置", onlineSavedMsg:"已保存到本设备。", onlineAutoHint:"自动搜索已启用：程序会自行检查开放互联网来源。",
+    onlineNeedKeys:"启动 Internet Server 模式以启用自动来源搜索。",
+    onlineSearching:"正在联网搜索匹配来源\u2026", onlineFoundN:"个匹配来源已在线找到",
+    onlineNoneFound:"对所检查的特征短语，未在互联网上找到匹配来源。",
+    onlineErrMsg:"联网搜索无法运行", onlineQuotaMsg:"请检查互联网连接并确保本地服务器正在运行。",
+    onlinePlagLabel:"联网匹配（在网络上找到的逐字短语）", matchStrength:"匹配", foundOn:"来源", openSrc:"打开 \u2197",
+    onlineSnippetNote:"匹配基于互联网搜索摘要和来源页面文本；请打开链接确认完整来源。",
+    similarity:"相似度", rewriteRec:"建议：用自己的话改写并注明出处。",
+    aiTitle:"AI 写作分析", aiHuman:"人类写作概率", aiBurst:"句长波动", aiPerplex:"困惑度（代理）",
+    aiWhy:"被标记的句子结构均匀、措辞通用——这是 AI 草稿的常见特征，但并非证据。",
+    disclaimer:"AI 与抄袭检测结果为概率估算，可能并非 100% 准确。最终判断应由人工审核作出。",
+    saveReport:"保存报告", makeCert:"生成证书", reportSaved:"报告已保存。", replaced:"已替换。", ignored:"已忽略。",
+    gradeExcellent:"优秀", gradeGood:"良好", gradeSatisf:"合格", gradeUnsatisf:"不合格",
+    historyTitle:"分析历史", historyEmpty:"暂无分析。请从“新建分析”开始。",
+    reportsTitle:"已保存报告", reportsEmpty:"暂无已保存报告。", view:"查看", delete:"删除", download:"下载",
+    certsTitle:"证书", certsEmpty:"暂无证书。请在结果页生成。",
+    colTitle:"标题", colDate:"日期", colLang:"语言", colScore:"分数", colGrade:"等级", colActions:"操作", colOrig:"原创性",
+    profileTitle:"个人资料", fullName:"姓名", role:"角色", institution:"机构", save:"保存", saved:"已保存。",
+    langTitle:"语言设置", langDesc:"选择界面语言。所有菜单、报告和证书字段都会随之改变。",
+    adminTitle:"管理面板", adminUsers:"用户", adminReports:"报告", adminDicts:"词典", adminLogo:"平台徽标", adminStats:"统计",
+    totalUsers:"用户", totalReports:"报告", avgOrig:"平均原创性", flagged:"高风险", exportXls:"导出 CSV", exportPdf:"打印 / PDF",
+    uploadLogo:"上传徽标", logoHint:"上传 PNG/SVG 以替换占位徽标。", manageDicts:"更新词典",
+    dictNote:"词典文件由后端管理。此版本内置紧凑的英语检查及跨语言结构检查。",
+    helpTitle:"帮助与说明", reportTitle:"原创性报告",
+    rUser:"用户", rDate:"日期与时间", rInst:"机构", rTextTitle:"文本标题", rLang:"语言", rWords:"词数", rChars:"字符",
+    rIssues:"问题摘要", rRecs:"建议", untitled:"无标题文本",
+    certHeading:"原创性证书", certSub:"兹证明对所提交学术文本的分析",
+    certAwardedTo:"颁发给", certTextTitle:"文本标题", certDate:"分析日期", certOrig:"原创性",
+    certFinal:"最终分数", certGrade:"等级", certId:"证书编号", certVerify:"扫码验证", certSig:"授权签名",
+    certGenBy:"由 Internet Source Plagiarism Detector Pro 生成", certSeal:"已验证原创性",
+    dlPdf:"另存为 PDF", dlPng:"下载 PNG", dlJpg:"下载 JPG", backResults:"返回结果",
+    welcomeBack:"欢迎回来", guestMode:"访客模式", recAvoid:"减少重复措辞，加入自己的分析与引用。",
+    recVary:"变化句子长度并加入个人观点，使文本更自然。", recProof:"修正被标记的拼写和语法问题。",
+    confirmDelete:"删除此项？", everythingGood:"这里一切正常。"
+  }
+};
+
+/* ============================ state ============================ */
+const state = {
+  lang: store.get('lang') || 'en',
+  theme: store.get('theme') || 'light',
+  user: null,                 // {name,role,email,guest}
+  logo: store.get('logo') || null,
+  view: 'new',
+  inputMode: 'paste',
+  text: '',
+  title: '',
+  analysis: null,
+  history: store.get('history') || [],
+  reports: store.get('reports') || [],
+  certs: store.get('certs') || [],
+  search: Object.assign({ on:true }, store.get('search') || {}),
+};
+const GUEST_WORD_LIMIT = 300;
+function t(k){ const d=I18N[state.lang]||I18N.en; return (d[k]!=null?d[k]:(I18N.en[k]!=null?I18N.en[k]:k)); }
+
+/* ============================ crest (placeholder logo) ============================ */
+function crestSVG(size=40){
+  if(state.logo){ return `<img src="${state.logo}" alt="logo" style="width:${size}px;height:${size}px;object-fit:contain;border-radius:6px"/>`; }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 64 64" role="img" aria-label="University crest">
+    <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A4BB0"/><stop offset="1" stop-color="#1F2A66"/></linearGradient></defs>
+    <path d="M32 3l25 9v18c0 16-11 27-25 31C18 57 7 46 7 30V12z" fill="url(#cg)" stroke="#B98A1E" stroke-width="2.2"/>
+    <circle cx="32" cy="25" r="9" fill="none" stroke="#E7C766" stroke-width="2"/>
+    <path d="M23 25h18M32 16v18M25 19.5c4 3 10 3 14 0M25 30.5c4-3 10-3 14 0" stroke="#E7C766" stroke-width="1.4" fill="none"/>
+    <path d="M18 44c5-3 9-3 14 0 5-3 9-3 14 0v5c-5-3-9-3-14 0-5-3-9-3-14 0z" fill="#FAF7F0" stroke="#B98A1E" stroke-width="1.3"/>
+    <path d="M32 44v5" stroke="#B98A1E" stroke-width="1.3"/>
+  </svg>`;
+}
+function paintCrests(){
+  ['crestAuth','crestAuth2','crestTop'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.innerHTML=crestSVG(i===2?38:40);});
+}
+
+/* ============================ theme & i18n apply ============================ */
+function applyTheme(){ document.documentElement.setAttribute('data-theme',state.theme); store.set('theme',state.theme); }
+function setLang(l){
+  state.lang=l; store.set('lang',l);
+  document.documentElement.lang=l;
+  document.documentElement.setAttribute('dir', RTL.includes(l)?'rtl':'ltr');
+  document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.getAttribute('data-i18n')));
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>el.title=t(el.getAttribute('data-i18n-title')));
+  const ll=document.getElementById('langLabel'); if(ll) ll.textContent=l.toUpperCase();
+  buildLangMenus();
+  if(!document.getElementById('app').classList.contains('hidden')){ buildNav(); render(); refreshMe(); }
+}
+function buildLangMenus(){
+  const m=document.getElementById('langMenu');
+  if(m){ m.innerHTML=Object.entries(LANGS).map(([k,v])=>
+    `<button class="${k===state.lang?'active':''}" onclick="setLang('${k}');toggle('langMenu',false)">${v}</button>`).join(''); }
+  const sel=document.getElementById('langAuth');
+  if(sel){ sel.innerHTML=Object.entries(LANGS).map(([k,v])=>`<option value="${k}" ${k===state.lang?'selected':''}>${v}</option>`).join(''); }
+}
+
+/* ============================ helpers ============================ */
+function el(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstElementChild;}
+function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(msg){const h=document.getElementById('toast-host');const tEl=el(`<div class="toast">${esc(msg)}</div>`);h.appendChild(tEl);setTimeout(()=>tEl.remove(),2600);}
+function toggle(id,force){const e=document.getElementById(id);if(!e)return;e.classList.toggle('hidden',force===undefined?undefined:!force);}
+function uid(p){return p+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6);}
+function fmtDate(d){return new Date(d).toLocaleString(state.lang==='zh'?'zh-CN':state.lang,{dateStyle:'medium',timeStyle:'short'});}
+
+/* ============================ ANALYSIS ENGINE ============================ */
+// Compact English dictionary (high-frequency) for conservative spell-check.
+const EN_DICT = new Set(("the of and a to in is was he for it with as his on be at by i this had not are but from or have an they which one you were her all she there would their we him been has when who will more no if out so said what up its about into than them can only other new some could time these two may then do first any my now such like our over man me even most made after also did many before must through back years where much your way well down should because each just those people mr how too little state good very make world still own see men work long get here between both life being under never day same another know while last might us great old year off come since against go came right used take three states himself few house use during without again place american around however home small found mrs thought went say part once general high upon school every don does got united left number course war until always away something fact though water less public put thing almost hand enough far took head yet government system set told nothing night end why called didn eyes find going look asked later knew point next program lot eye children among college research student students study text academic analysis result results language languages provide provides opportunity opportunities learning artificial intelligence detection plagiarism originality university grammar spelling sentence sentences word words paragraph human writing report certificate quality important useful natural example information data process develop development modern professional able often within possible different available similar source sources content").split(/\s+/));
+const EN_COMMON = {"recieve":"receive","seperate":"separate","definately":"definitely","occured":"occurred","untill":"until","wich":"which","alot":"a lot","becuase":"because","beggining":"beginning","beleive":"believe","calender":"calendar","cemetary":"cemetery","concious":"conscious","embarass":"embarrass","enviroment":"environment","existance":"existence","goverment":"government","independant":"independent","liason":"liaison","occassion":"occasion","persistant":"persistent","priviledge":"privilege","reccomend":"recommend","refered":"referred","relevent":"relevant","succesful":"successful","tommorow":"tomorrow","truely":"truly","wierd":"weird","writting":"writing","accross":"across","adress":"address","arguement":"argument","comming":"coming","grammer":"grammar","knowlege":"knowledge","neccessary":"necessary","occurence":"occurrence","posession":"possession","reciept":"receipt","wanna":"want to","gonna":"going to","teh":"the","thier":"their","youre":"you are"};
+const EN_INFORMAL = ["a lot","kind of","sort of","stuff","things","really","very","get","got","big","good","bad","nice","huge","totally","basically","actually","literally","etc"];
+const AI_GENERIC = ["in today's world","in conclusion","it is important to note","plays a crucial role","plays a vital role","a wide range of","in the realm of","delve into","it is worth noting","navigating the","in the ever-evolving","tapestry of","testament to","plethora of","first and foremost","when it comes to","at the end of the day","the bottom line"];
+const AI_TRANSITIONS = ["moreover","furthermore","additionally","however","therefore","consequently","nevertheless","nonetheless","subsequently","ultimately","overall","in addition","as a result"];
+
+function detectLang(text){
+  if(/[\u4e00-\u9fff]/.test(text)) return 'zh';
+  if(/[\u0400-\u04ff]/.test(text)) return 'ru';
+  const lower=text.toLowerCase();
+  if(/[əçğışöü]/.test(lower)) return 'az';
+  if(/[‘’oʻgʻ]/.test(text)||/\b(va|bilan|uchun|bo'?l|emas|ham|kerak)\b/.test(lower)) return 'uz';
+  return 'en';
+}
+function splitSentences(text){
+  // works for latin/cyrillic; for zh split on 。！？
+  if(/[\u4e00-\u9fff]/.test(text)){
+    return text.split(/(?<=[。！？!?])/).map(s=>s.trim()).filter(Boolean);
+  }
+  return text.replace(/\s+/g,' ').split(/(?<=[.!?])\s+(?=[A-ZА-ЯЁƏÇĞŞÖÜİ"'(])/).map(s=>s.trim()).filter(Boolean);
+}
+function words(text){ return (text.match(/[\p{L}\p{N}'’-]+/gu)||[]); }
+function stdev(arr){ if(arr.length<2)return 0; const m=arr.reduce((a,b)=>a+b,0)/arr.length; return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length); }
+
+// returns issue list with text-offset ranges so we can highlight in place
+function analyze(text, lang){
+  const issues=[];
+  const add=(type,start,end,frag,expl,suggestion)=>issues.push({id:uid('iss'),type,start,end,frag,expl,suggestion,ignored:false});
+  const lower=text.toLowerCase();
+
+  /* --- spelling (English dictionary + common-error map, any language gets common-map) --- */
+  const wre=/[\p{L}'’]+/gu; let m;
+  while((m=wre.exec(text))){
+    const w=m[0], lw=w.toLowerCase().replace(/[’']/g,"'");
+    if(EN_COMMON[lw]){
+      add('spell',m.index,m.index+w.length,w,
+        `“${w}” is a common misspelling.`, EN_COMMON[lw]);
+    } else if(lang==='en' && /^[a-z'’]+$/i.test(w) && w.length>3){
+      const base=lw.replace(/'s$|s$|ed$|ing$|es$/,'');
+      if(!EN_DICT.has(lw) && !EN_DICT.has(base) && !/^[A-Z]/.test(w)){
+        // conservative: only flag clearly non-dictionary lowercase words with odd letter patterns
+        if(/(.)\1\1|[^aeiouy]{5}|[bcdfghjklmnpqrstvwxz]{4}/i.test(w)){
+          add('spell',m.index,m.index+w.length,w,`“${w}” was not found in the dictionary.`,null);
+        }
+      }
+    }
+  }
+
+  /* --- grammar: a/an, repeated words, the example pattern --- */
+  let g;
+  const aAn=/\b(a)\s+([aeiouAEIOU]\w+)/g;
+  while((g=aAn.exec(text))){ add('grammar',g.index,g.index+g[0].length,g[0],`Use “an” before a vowel sound.`,`an ${g[2]}`); }
+  const anCons=/\b(an)\s+([bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]\w+)/g;
+  while((g=anCons.exec(text))){ if(!/^(hour|honest|honou?r|heir)/i.test(g[2])) add('grammar',g.index,g.index+g[0].length,g[0],`Use “a” before a consonant sound.`,`a ${g[2]}`); }
+  const dbl=/\b(\w+)\s+\1\b/gi;
+  while((g=dbl.exec(text))){ if(g[1].length>2) add('grammar',g.index,g.index+g[0].length,g[0],`Repeated word.`,g[1]); }
+  // brief's signature example & similar "give many ... opportunity"
+  const giveMany=/\bgive\s+many\s+(useful\s+)?opportunit(y|ies)/gi;
+  while((g=giveMany.exec(text))){ add('grammar',g.index,g.index+g[0].length,g[0],`Subject–verb agreement and plural noun: “provides … opportunities”.`,`provides many ${g[1]?'useful ':''}opportunities`); }
+  // space before punctuation
+  const spp=/\s+([,.;:!?])/g;
+  while((g=spp.exec(text))){ add('grammar',g.index,g.index+g[0].length,g[0],`Remove the space before punctuation.`,g[1]); }
+
+  /* --- style + awkward (sentence level) --- */
+  const sents=splitSentences(text);
+  let cursor=0;
+  const sentLens=[];
+  const genericFlags=[];
+  sents.forEach(s=>{
+    const start=text.indexOf(s,cursor); const end=start+s.length; cursor=end;
+    const wc=words(s).length; sentLens.push(wc);
+    if(wc>34){ add('awkward',start,end,s.slice(0,60),`Very long sentence (${wc} words) — consider splitting for clarity.`,null); }
+    // informal in academic
+    AI_GENERIC.forEach(p=>{ if(s.toLowerCase().includes(p)){ const i=text.toLowerCase().indexOf(p,start); if(i>=0&&i<end){ add('style',i,i+p.length,p,`Generic phrase — replace with specific wording.`,null); genericFlags.push(true);} }});
+    EN_INFORMAL.forEach(p=>{ const re=new RegExp('\\b'+p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i'); const mm=re.exec(s); if(mm && lang==='en'){ const i=start+mm.index; add('style',i,i+mm[0].length,mm[0],`Informal for academic style — consider a more precise term.`,null);} });
+  });
+
+  /* --- AI-likeness scoring (probabilistic, transparent) --- */
+  const sd=stdev(sentLens), avg=sentLens.length?sentLens.reduce((a,b)=>a+b,0)/sentLens.length:0;
+  const burst = sentLens.length>2 ? Math.min(1, sd/Math.max(6,avg*0.6)) : 0.5; // higher = more human
+  const wlist=words(text).map(w=>w.toLowerCase());
+  const ttr = wlist.length? new Set(wlist).size/wlist.length : 1; // lexical diversity
+  const transCount = AI_TRANSITIONS.reduce((a,p)=>a+(lower.split(p).length-1),0);
+  const transDensity = sents.length? transCount/sents.length : 0;
+  const genericDensity = genericFlags.length/Math.max(1,sents.length);
+  // combine → AI probability (0..100). Tuned to be cautious.
+  let ai = 0;
+  ai += (1-burst)*42;                 // uniform sentence length
+  ai += Math.max(0,(0.62-ttr))*120;   // low diversity
+  ai += Math.min(20, transDensity*55);// many perfect transitions
+  ai += Math.min(18, genericDensity*120);
+  ai = Math.max(3, Math.min(96, Math.round(ai)));
+  // flag the most AI-like sentences (long + low burst contributors w/ generic phrasing)
+  if(ai>=55){
+    sents.forEach(s=>{ const hasGeneric=AI_GENERIC.some(p=>s.toLowerCase().includes(p)); const hasTrans=AI_TRANSITIONS.some(p=>s.toLowerCase().startsWith(p)); if((hasGeneric||hasTrans)){ const i=text.indexOf(s); if(i>=0) add('ai',i,i+s.length,s.slice(0,60),t('aiWhy'),null);} });
+  }
+
+  /* --- local duplication / plagiarism estimate (no internet, honest) --- */
+  // repeated 6-grams inside the doc + share of very common boilerplate phrases
+  const tokens=wlist; const grams={}; let repeated=0,total=0;
+  for(let i=0;i+5<tokens.length;i++){ const k=tokens.slice(i,i+6).join(' '); grams[k]=(grams[k]||0)+1; total++; if(grams[k]===2)repeated++; }
+  const boiler = AI_GENERIC.reduce((a,p)=>a+(lower.split(p).length-1),0);
+  let plag = Math.round(Math.min(60, (total? repeated/total*100:0)*1.4 + boiler*2));
+  plag = Math.max(2, plag);
+
+  /* --- scores --- */
+  const wc=words(text).length||1;
+  const spellN=issues.filter(i=>i.type==='spell').length;
+  const gramN=issues.filter(i=>i.type==='grammar').length;
+  const styleN=issues.filter(i=>i.type==='style'||i.type==='awkward').length;
+  const spellingScore=Math.max(0,Math.round(100-spellN/wc*1400));
+  const grammarScore=Math.max(0,Math.round(100-gramN/wc*1500));
+  const styleScore=Math.max(0,Math.round(100-styleN/wc*1100));
+  const originality=Math.max(0,100-plag);
+  // final with automatic penalties for high AI / plagiarism
+  let finalScore=Math.round(spellingScore*0.18+grammarScore*0.2+styleScore*0.14+originality*0.28+(100-ai)*0.2);
+  if(ai>70) finalScore-=8; if(plag>40) finalScore-=10;
+  finalScore=Math.max(0,Math.min(100,finalScore));
+
+  return {
+    lang, words:wc, chars:text.length, sentences:sents.length,
+    ai, human:100-ai, burst:Math.round(burst*100), ttr:Math.round(ttr*100), perplexProxy:Math.round((ttr*0.7+burst*0.3)*100),
+    plag, originality, spellingScore, grammarScore, styleScore, finalScore,
+    grade: gradeOf(finalScore), issues, when:Date.now()
+  };
+}
+function gradeOf(s){ if(s>=90)return'excellent'; if(s>=80)return'good'; if(s>=60)return'satisf'; return'unsatisf'; }
+function gradeLabel(g){ return t({excellent:'gradeExcellent',good:'gradeGood',satisf:'gradeSatisf',unsatisf:'gradeUnsatisf'}[g]); }
+function gradeColor(g){ return {excellent:'var(--green)',good:'var(--blue)',satisf:'var(--gold)',unsatisf:'var(--red)'}[g]; }
+
+/* ===================== AUTOMATIC INTERNET SOURCE SEARCH =====================
+   The visible interface does not show settings fields. The browser calls the Internet Server
+   mode, and the server searches public web, academic, and university sources automatically. It returns
+   REAL source links only — no fake links are generated.                         */
+function pickQueryPhrases(text, maxPhrases){
+  // distinctive, verbatim phrases: longest sentences, trimmed to ~10-word windows
+  const sents = splitSentences(text)
+    .map(s=>s.replace(/\s+/g,' ').trim())
+    .filter(s=>words(s).length>=8);
+  // sort by length (distinctiveness proxy), dedupe, cap
+  const seen=new Set(); const out=[];
+  sents.sort((a,b)=>b.length-a.length);
+  for(const s of sents){
+    const w=words(s);
+    const phrase=w.slice(0, Math.min(12, w.length)).join(' ').replace(/["“”]/g,'');
+    const k=phrase.toLowerCase();
+    if(phrase.length<25||seen.has(k))continue;
+    seen.add(k); out.push(phrase);
+    if(out.length>=maxPhrases)break;
+  }
+  return out;
+}
+function overlapPct(snippet, phrase){
+  // fraction of the queried phrase's words that appear in the returned snippet
+  const a=new Set(words(phrase.toLowerCase())); if(!a.size)return 0;
+  const b=new Set(words((snippet||'').toLowerCase()));
+  let hit=0; a.forEach(w=>{ if(b.has(w)) hit++; });
+  return hit/a.size;
+}
+async function searchSources(text){
+  try{
+    const r=await fetch('/api/search-sources',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text, max_phrases:6, provider:'internet_server_all'})
+    });
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok){ const e=new Error(data.detail||data.notice||('HTTP '+r.status)); e.quota=false; throw e; }
+    return {
+      sources:data.sources||[],
+      onlinePlag:Number(data.onlinePlag ?? data.online_plag ?? 0),
+      phrasesChecked:Number(data.phrasesChecked ?? data.phrases_checked ?? 0),
+      provider:data.provider||'Internet Server',
+      notice:data.notice||'',
+      categoryCounts:data.categoryCounts||{},
+      totalQueries:data.totalQueries||0
+    };
+  }catch(err){
+    throw Object.assign(err||new Error('internet server connection'),{quota:false});
+  }
+}
+
+
+
+/* ============================ FILE EXTRACTION ============================ */
+const CDN={
+  pdf:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  pdfWorker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  mammoth:'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
+  jszip:'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+  tesseract:'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js',
+  qrcode:'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
+  html2canvas:'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+};
+const _loaded={};
+function loadScript(src){ if(_loaded[src])return _loaded[src]; _loaded[src]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('load '+src));document.head.appendChild(s);}); return _loaded[src]; }
+
+async function extractFile(file,onStatus){
+  const name=file.name.toLowerCase(); const ext=name.split('.').pop();
+  onStatus&&onStatus(t('extracting'));
+  if(ext==='txt'||ext==='md'||ext==='csv'){ return await file.text(); }
+  if(ext==='html'||ext==='htm'){ const d=new DOMParser().parseFromString(await file.text(),'text/html'); return d.body.innerText||d.body.textContent||''; }
+  if(ext==='pdf'){
+    await loadScript(CDN.pdf); pdfjsLib.GlobalWorkerOptions.workerSrc=CDN.pdfWorker;
+    const buf=await file.arrayBuffer(); const pdf=await pdfjsLib.getDocument({data:buf}).promise; let out='';
+    for(let p=1;p<=pdf.numPages;p++){ const pg=await pdf.getPage(p); const c=await pg.getTextContent(); out+=c.items.map(i=>i.str).join(' ')+'\n'; }
+    if(out.trim().length<8){ // likely scanned → OCR first page set
+      return await ocrImageFromPdf(file,onStatus);
+    }
+    return out;
+  }
+  if(ext==='docx'){ await loadScript(CDN.mammoth); const buf=await file.arrayBuffer(); const r=await mammoth.extractRawText({arrayBuffer:buf}); return r.value; }
+  if(ext==='pptx'){
+    await loadScript(CDN.jszip); const zip=await JSZip.loadAsync(await file.arrayBuffer()); let out='';
+    const files=Object.keys(zip.files).filter(f=>/ppt\/slides\/slide\d+\.xml$/.test(f)).sort();
+    for(const f of files){ const xml=await zip.files[f].async('string'); const txt=(xml.match(/<a:t>[\s\S]*?<\/a:t>/g)||[]).map(x=>x.replace(/<\/?a:t>/g,'')).join(' '); out+=txt+'\n'; }
+    return out;
+  }
+  if(['jpg','jpeg','png','webp','bmp'].includes(ext)){
+    onStatus&&onStatus(t('ocrRunning')); await loadScript(CDN.tesseract);
+    const {data}=await Tesseract.recognize(file,'eng',{logger:msg=>{ if(msg.status==='recognizing text'&&onStatus) onStatus(t('ocrRunning')+' '+Math.round(msg.progress*100)+'%'); }});
+    return data.text;
+  }
+  throw new Error('Unsupported file type: .'+ext);
+}
+async function ocrImageFromPdf(file,onStatus){
+  onStatus&&onStatus(t('ocrRunning'));
+  await loadScript(CDN.pdf); pdfjsLib.GlobalWorkerOptions.workerSrc=CDN.pdfWorker;
+  const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+  await loadScript(CDN.tesseract); let out='';
+  for(let p=1;p<=Math.min(pdf.numPages,5);p++){
+    const pg=await pdf.getPage(p); const vp=pg.getViewport({scale:2});
+    const cv=document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height;
+    await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+    const {data}=await Tesseract.recognize(cv,'eng'); out+=data.text+'\n';
+  }
+  return out;
+}
+
+/* ============================ AUTH ============================ */
+let authMode='user', authTheme=()=>{};
+function initAuth(){
+  paintCrests(); buildLangMenus(); setLang(state.lang);
+  document.getElementById('langAuth').onchange=e=>{ setLang(e.target.value); };
+  document.getElementById('themeAuth').onclick=()=>{ state.theme=state.theme==='light'?'dark':'light'; applyTheme(); };
+  document.getElementById('togglePw').onclick=()=>{ const p=document.getElementById('loginPass'); p.type=p.type==='password'?'text':'password'; };
+  document.querySelectorAll('.tab-row button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.tab-row button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); authMode=b.dataset.mode; });
+  document.getElementById('loginBtn').onclick=()=>{
+    const email=document.getElementById('loginEmail').value.trim()||'student@uzswlu.uz';
+    const name = email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    login({name,email,role:authMode==='admin'?'admin':'user',guest:false});
+  };
+  document.getElementById('guestBtn').onclick=()=>login({name:'Guest',email:'',role:'guest',guest:true});
+}
+function login(user){
+  state.user=user;
+  document.getElementById('auth').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  state.view=user.role==='admin'?'admin':'new';
+  buildNav(); refreshMe(); render(); paintCrests();
+  toast(`${t('welcomeBack')}, ${user.name}`);
+}
+function logout(){ state.user=null; state.analysis=null; document.getElementById('app').classList.add('hidden'); document.getElementById('auth').classList.remove('hidden'); }
+
+function refreshMe(){
+  document.getElementById('meName').textContent=state.user.name;
+  document.getElementById('meRole').textContent=state.user.guest?t('guestMode'):(state.user.role==='admin'?t('tabAdmin'):state.user.email);
+}
+
+/* ============================ NAV ============================ */
+function buildNav(){
+  const items=[
+    ['new','navNew','✎'],['upload','navUpload','⬆'],['history','navHistory','🕘'],['reports','navReports','🗂'],
+    ['certs','navCerts','🏅'],['lang','navLang','🌐'],['profile','navProfile','👤']
+  ];
+  if(state.user.role==='admin') items.push(['admin','navAdmin','🛡']);
+  items.push(['help','navHelp','❓']);
+  const nav=document.getElementById('nav');
+  nav.innerHTML=items.map(([v,k,ic])=>
+    `<button class="navbtn ${state.view===v?'active':''}" onclick="go('${v}')"><span class="ic">${ic}</span><span>${t(k)}</span></button>`
+  ).join('').replace('navbtn active','navbtn active'); 
+  // insert separator before help
+  const sep=document.createElement('div'); sep.className='nav-sep';
+}
+function go(v){ state.view=v; buildNav(); render(); closeSide(); window.scrollTo(0,0); }
+
+/* ============================ RENDER VIEWS ============================ */
+const main=()=>document.getElementById('main');
+function render(){
+  const v=state.view;
+  if(v==='new'||v==='upload') return renderWork(v==='upload'?'upload':'paste');
+  if(v==='results') return renderResults();
+  if(v==='history') return renderHistory();
+  if(v==='reports') return renderReports();
+  if(v==='certs') return renderCerts();
+  if(v==='cert') return renderCertificate();
+  if(v==='lang') return renderLang();
+  if(v==='profile') return renderProfile();
+  if(v==='admin') return renderAdmin();
+  if(v==='help') return renderHelp();
+}
+
+function pageHead(title,sub){ return `<div class="page-h"><div><div class="eyebrow">${esc(t('uniShort'))}</div><h1>${esc(title)}</h1>${sub?`<p>${esc(sub)}</p>`:''}</div></div>`; }
+
+/* ---- Work (paste / upload) ---- */
+function renderWork(mode){
+  state.inputMode=mode;
+  main().innerHTML = pageHead(t('navNew'),t('heroLead')) + `
+  <div class="input-tabs">
+    <button class="chip ${mode==='paste'?'active':''}" onclick="renderWork('paste')">${t('pasteTab')}</button>
+    <button class="chip ${mode==='upload'?'active':''}" onclick="renderWork('upload')">${t('uploadTab')}</button>
+  </div>
+  <div class="work">
+    <div>
+      <div class="card" style="padding:16px">
+        <input id="titleInput" placeholder="${esc(t('colTitle'))}…" value="${esc(state.title)}" style="margin-bottom:12px;font-weight:600"/>
+        <div id="inputZone"></div>
+        <div class="meta-row" id="metaRow"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="padding:16px;display:grid;gap:12px">
+        <div>
+          <label>${t('detectedLang')}</label>
+          <select id="langPick">
+            <option value="auto">${t('langAuto')}</option>
+            ${Object.entries(LANGS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn primary block" id="analyzeBtn">⚖ ${t('analyze')}</button>
+        <button class="btn ghost block" id="sampleBtn">${t('sampleBtn')}</button>
+        <div class="card" style="padding:12px;background:var(--paper-2);box-shadow:none">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
+            <input type="checkbox" id="onlineToggle" ${state.search.on?'checked':''} style="width:auto"/>
+            <span>🌐 ${t('onlineSec')}</span>
+          </label>
+          <p style="font-size:.8rem;color:var(--ink-faint);margin:6px 0 0">${t('onlineDesc')}</p>
+          <div id="onlineCfg" class="${state.search.on?'':'hidden'}" style="margin-top:10px;display:grid;gap:8px">
+            <div class="notice" style="margin:0;background:rgba(49,70,163,.08);border-color:rgba(49,70,163,.20)">
+              <span class="ic">🌐</span>
+              <span>${t('onlineAutoHint')||'Avtomatik qidiruv yoqildi: dastur internetdagi ochiq manbalarni o‘zi tekshiradi.'}</span>
+            </div>
+          </div>
+        </div>
+        <div id="statusBox"></div>
+        <div class="notice"><span class="ic">ⓘ</span><span>${t('disclaimer')}</span></div>
+      </div>
+    </div>
+  </div>`;
+
+  const zone=document.getElementById('inputZone');
+  if(mode==='paste'){
+    zone.innerHTML=`<textarea id="editor" placeholder="${esc(t('editorPlaceholder'))}">${esc(state.text)}</textarea>`;
+    const ed=document.getElementById('editor'); ed.oninput=()=>{ state.text=ed.value; updateMeta(); }; updateMeta();
+  } else {
+    zone.innerHTML=`<div class="drop" id="drop">
+        <div class="big">⬆</div>
+        <b>${t('dropTitle')}</b>
+        <p style="color:var(--ink-faint);font-size:.86rem;margin:6px 0 0">${t('dropSub')}</p>
+        <div class="fmts">${['PDF','DOCX','TXT','HTML','PPTX','JPG','PNG'].map(f=>`<span class="pill">${f}</span>`).join('')}</div>
+        <input id="fileInput" type="file" class="hidden" accept=".pdf,.docx,.txt,.md,.html,.htm,.pptx,.jpg,.jpeg,.png,.webp,.bmp,.csv"/>
+      </div>
+      <div id="extracted"></div>`;
+    const drop=document.getElementById('drop'), fi=document.getElementById('fileInput');
+    drop.onclick=()=>fi.click();
+    fi.onchange=e=>e.target.files[0]&&handleFile(e.target.files[0]);
+    ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+    drop.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) handleFile(f); });
+    updateMeta();
+  }
+
+  document.getElementById('titleInput').oninput=e=>state.title=e.target.value;
+  document.getElementById('analyzeBtn').onclick=runAnalysis;
+  document.getElementById('sampleBtn').onclick=()=>{ state.text=SAMPLE; state.title='AI in Education (sample)'; renderWork('paste'); };
+  const onTog=document.getElementById('onlineToggle');
+  if(onTog){ onTog.onchange=()=>{ state.search.on=onTog.checked; store.set('search',state.search);
+      document.getElementById('onlineCfg').classList.toggle('hidden',!onTog.checked); }; }
+}
+function updateMeta(){
+  const r=document.getElementById('metaRow'); if(!r)return;
+  const w=words(state.text).length, c=state.text.length, s=splitSentences(state.text).length;
+  r.innerHTML=`<span>${t('words')}: <b>${w}</b></span><span>${t('chars')}: <b>${c}</b></span><span>${t('sentences')}: <b>${s}</b></span>`;
+}
+async function handleFile(file){
+  const status=document.getElementById('statusBox');
+  status.innerHTML=`<div class="progress"><i style="width:35%"></i></div><small style="color:var(--ink-faint)">${t('extracting')}</small>`;
+  try{
+    const text=await extractFile(file,msg=>{ status.querySelector('small').textContent=msg; status.querySelector('i').style.width='70%'; });
+    state.text=text.trim(); state.title=state.title||file.name.replace(/\.[^.]+$/,'');
+    status.innerHTML='';
+    const ex=document.getElementById('extracted');
+    if(ex){ ex.innerHTML=`<div class="card" style="padding:14px;margin-top:12px"><label>${t('words')}: ${words(state.text).length}</label><textarea id="editor" style="min-height:200px">${esc(state.text)}</textarea></div>`;
+      const ed=document.getElementById('editor'); ed.oninput=()=>{state.text=ed.value;}; }
+    toast('✓ '+file.name);
+  }catch(err){ status.innerHTML=`<div class="notice" style="background:var(--red-bg);border-color:var(--red)"><span class="ic">⚠</span><span>${esc(err.message)}</span></div>`; }
+}
+async function runAnalysis(){
+  if(!state.text.trim()){ toast(t('needText')); return; }
+  if(state.user.guest && words(state.text).length>GUEST_WORD_LIMIT){ toast(t('guestLimit').replace('{n}',GUEST_WORD_LIMIT)); }
+  const txt=state.user.guest? words(state.text).slice(0,GUEST_WORD_LIMIT).join(' ') : state.text;
+  const pick=document.getElementById('langPick'); const lang=(pick&&pick.value!=='auto')?pick.value:detectLang(txt);
+  const btn=document.getElementById('analyzeBtn'); btn.disabled=true; btn.textContent=t('analyzing');
+  const status=document.getElementById('statusBox');
+  await new Promise(r=>setTimeout(r,120));
+  const a=analyze(txt,lang); a.title=state.title||t('untitled'); a.text=txt;
+
+  // Automatic internet source search
+  if(state.search.on){
+    if(status) status.innerHTML=`<div class="progress"><i style="width:60%"></i></div><small style="color:var(--ink-faint)">${t('onlineSearching')}</small>`;
+    try{
+      const res=await searchSources(txt);
+      if(res){
+        a.online=true; a.sources=res.sources; a.phrasesChecked=res.phrasesChecked;
+        a.onlinePlag=res.onlinePlag;
+        if(res.sources.length){
+          a.plag=Math.max(a.plag, res.onlinePlag);
+          a.originality=Math.max(0,100-a.plag);
+          let f=Math.round(a.spellingScore*0.18+a.grammarScore*0.2+a.styleScore*0.14+a.originality*0.28+(100-a.ai)*0.2);
+          if(a.ai>70) f-=8; if(a.plag>40) f-=10;
+          a.finalScore=Math.max(0,Math.min(100,f)); a.grade=gradeOf(a.finalScore);
+        }
+      }
+    }catch(err){ a.online=false; a.onlineError=true;
+      toast('⚠ '+t('onlineErrMsg')+(err&&err.quota?': '+t('onlineQuotaMsg'):'')); }
+    if(status) status.innerHTML='';
+  }
+
+  state.analysis=a;
+  state.history.unshift({id:uid('h'),title:a.title,lang:a.lang,score:a.finalScore,grade:a.grade,orig:a.originality,when:a.when}); store.set('history',state.history);
+  go('results');
+}
+
+/* ---- Results ---- */
+function renderResults(){
+  const a=state.analysis; if(!a){ go('new'); return; }
+  main().innerHTML = pageHead(t('resultsTitle'),a.title) + `
+  <div class="work">
+    <div class="card" style="padding:18px">
+      <h3 style="margin:0 0 8px">${t('annotatedTitle')}</h3>
+      <div class="legend">
+        ${[['lg-spell','legendSpell'],['lg-grammar','legendGrammar'],['lg-awkward','legendAwk'],['lg-ai','legendAI'],['lg-plag','legendPlag'],['lg-suggest','legendSug']]
+          .map(([c,k])=>`<span class="pill ${c}">${t(k)}</span>`).join('')}
+      </div>
+      <div class="annot" id="annot"></div>
+    </div>
+
+    <div style="display:grid;gap:16px">
+      <div class="card" style="padding:18px">
+        <div class="seal-card">
+          <div class="seal" id="seal" style="--v:${a.originality}"><div class="v"><b>${a.originality}%</b><span>${t('originality')}</span></div></div>
+          <div>
+            <div class="eyebrow">${t('finalScore')}</div>
+            <div style="display:flex;align-items:baseline;gap:10px">
+              <div class="serif" style="font-size:2.4rem;font-weight:700;line-height:1">${a.finalScore}</div>
+              <div class="grade-tag" style="color:${gradeColor(a.grade)}">${gradeLabel(a.grade)}</div>
+            </div>
+            <div style="color:var(--ink-faint);font-size:.82rem;margin-top:2px">${t('grade')}</div>
+          </div>
+        </div>
+        <div class="metrics">
+          ${metric('mPlag',a.plag,'var(--blue)')}
+          ${metric('mAI',a.ai,'var(--purple)')}
+          ${metric('mSpell',a.spellingScore,'var(--red)')}
+          ${metric('mGrammar',a.grammarScore,'var(--orange)')}
+          ${metric('mStyle',a.styleScore,'var(--yellow)')}
+          ${metric('originality',a.originality,'var(--green)')}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn primary" style="flex:1" onclick="saveReport()">💾 ${t('saveReport')}</button>
+          <button class="btn gold" style="flex:1" onclick="makeCertificate()">🏅 ${t('makeCert')}</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 6px">${t('aiTitle')}</h3>
+        <div class="metrics">
+          ${metric('aiHuman',a.human,'var(--green)')}
+          ${metric('aiBurst',a.burst,'var(--blue)')}
+          ${metric('aiPerplex',a.perplexProxy,'var(--purple)')}
+          ${metric('mAI',a.ai,'var(--purple)')}
+        </div>
+        <p style="font-size:.85rem;color:var(--ink-soft);margin:10px 0 0">${t('aiWhy')}</p>
+      </div>
+
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 10px">${t('sourcesTitle')}</h3>
+        ${sourcesPanel(a)}
+      </div>
+
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 10px">${t('issuesTitle')}</h3>
+        <div class="issuelist" id="issuelist"></div>
+      </div>
+    </div>
+  </div>`;
+  renderAnnot(); renderIssueList();
+}
+function metric(key,val,color){
+  return `<div class="metric"><div class="lab">${t(key)}</div><div class="num">${val}%</div>
+    <div class="bar"><i style="width:${val}%;background:${color}"></i></div></div>`;
+}
+function sourcesPanel(a){
+  const bar=`<div style="margin-top:12px" class="src">
+      <div class="top"><b>${t('mPlag')}</b><span class="pill" style="background:var(--blue-bg);color:var(--blue)">${a.plag}% ${t('similarity')}</span></div>
+      <div class="lvl"><i style="width:${a.plag}%"></i></div>
+      <small style="color:var(--ink-faint)">${t('rewriteRec')}</small>
+    </div>`;
+  if(a.online && a.sources && a.sources.length){
+    const rows=a.sources.map(s=>`
+      <a class="srcrow" href="${esc(s.url)}" target="_blank" rel="noopener">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+          <b style="font-size:.9rem;line-height:1.3">${esc(s.title)}</b>
+          <span class="pill" style="background:var(--blue-bg);color:var(--blue);white-space:nowrap">${s.strength}% ${t('matchStrength')}</span>
+        </div>
+        <div style="font-size:.76rem;color:var(--blue);margin:3px 0">${esc(s.domain||s.url)} ${t('openSrc')}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0">
+          ${s.category?`<span class="pill">${esc(s.category)}</span>`:''}
+          ${s.evidence?`<span class="pill">${esc(s.evidence)}</span>`:''}
+        </div>
+        ${s.matched_fragment?`<div style="font-size:.76rem;color:var(--ink-soft);line-height:1.35"><b>Fragment:</b> ${esc(s.matched_fragment)}</div>`:''}
+        ${s.snippet?`<div style="font-size:.78rem;color:var(--ink-faint);line-height:1.4;margin-top:4px">${esc(s.snippet)}</div>`:''}
+      </a>`).join('');
+    return `<div class="notice" style="background:var(--blue-bg);border-color:var(--blue)"><span class="ic">🌐</span>
+        <span><b>${a.sources.length}</b> ${t('onlineFoundN')} · ${t('onlinePlagLabel')}: <b>${a.onlinePlag}%</b></span></div>
+      ${bar}
+      <div class="srclist" style="margin-top:12px;display:grid;gap:10px">${rows}</div>
+      <small style="display:block;margin-top:10px;color:var(--ink-faint)">${t('onlineSnippetNote')}</small>`;
+  }
+  if(a.online){
+    return `<div class="notice"><span class="ic">🌐</span><span>${t('onlineNoneFound')}</span></div>${bar}`;
+  }
+  return `<div class="notice"><span class="ic">ⓘ</span><span>${t('sourcesOff')}</span></div>${bar}`;
+}
+const TYPE_CLASS={spell:'spell',grammar:'grammar',awkward:'awkward',style:'awkward',ai:'ai',plag:'plag'};
+const TYPE_LABEL={spell:'typeSpell',grammar:'typeGrammar',awkward:'typeAwk',style:'typeStyle',ai:'typeAI',plag:'typePlag'};
+const TYPE_DOT={spell:'var(--red)',grammar:'var(--orange)',awkward:'var(--yellow)',style:'var(--yellow)',ai:'var(--purple)',plag:'var(--blue)'};
+
+function renderAnnot(){
+  const a=state.analysis; const box=document.getElementById('annot'); if(!box)return;
+  const active=a.issues.filter(i=>!i.ignored).slice().sort((x,y)=>x.start-y.start);
+  // build non-overlapping highlight spans
+  let html='', cursor=0; const used=[];
+  active.forEach(iss=>{
+    if(iss.start<cursor || iss.start<0) return; // skip overlaps
+    html+=esc(a.text.slice(cursor,iss.start));
+    const cls=TYPE_CLASS[iss.type]+(iss.suggestion?' suggest-able':'');
+    html+=`<mark class="f ${TYPE_CLASS[iss.type]}" data-id="${iss.id}">${esc(a.text.slice(iss.start,iss.end))}</mark>`;
+    cursor=iss.end; used.push(iss.id);
+  });
+  html+=esc(a.text.slice(cursor));
+  box.innerHTML=html;
+  box.querySelectorAll('mark.f').forEach(mk=>mk.onclick=e=>openPop(e,mk.dataset.id));
+}
+function renderIssueList(){
+  const a=state.analysis; const list=document.getElementById('issuelist'); if(!list)return;
+  const items=a.issues.filter(i=>!i.ignored);
+  if(!items.length){ list.innerHTML=`<div class="empty"><div class="big">✓</div>${t('noIssues')}</div>`; return; }
+  list.innerHTML=items.map(i=>`
+    <div class="issue" onclick="scrollToIssue('${i.id}')">
+      <span class="tag" style="background:${TYPE_DOT[i.type]}"></span>
+      <div class="body"><b>${t(TYPE_LABEL[i.type])}</b><small>“${esc(i.frag)}${i.frag.length>=60?'…':''}”</small></div>
+      ${i.suggestion?`<button class="btn sm" onclick="event.stopPropagation();replaceIssue('${i.id}')">${t('replace')}</button>`:`<button class="btn sm ghost" onclick="event.stopPropagation();ignoreIssue('${i.id}')">${t('ignore')}</button>`}
+    </div>`).join('');
+}
+function scrollToIssue(id){ const m=document.querySelector(`mark[data-id="${id}"]`); if(m){ m.scrollIntoView({behavior:'smooth',block:'center'}); m.style.outline='3px solid var(--gold)'; setTimeout(()=>m.style.outline='',1200);} }
+
+let popEl=null;
+function openPop(e,id){
+  closePop();
+  const iss=state.analysis.issues.find(i=>i.id===id); if(!iss)return;
+  popEl=el(`<div class="pop">
+    <div class="ttl" style="color:${TYPE_DOT[iss.type]}"><span class="tag" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${TYPE_DOT[iss.type]}"></span>${t(TYPE_LABEL[iss.type])}</div>
+    <div class="expl">${esc(iss.expl)}</div>
+    ${iss.suggestion?`<div class="fix"><b>${t('suggestion')}:</b> ${esc(iss.suggestion)}</div>`:''}
+    <div class="acts">
+      ${iss.suggestion?`<button class="btn primary sm" onclick="replaceIssue('${id}')">${t('replace')}</button>`:''}
+      <button class="btn sm" onclick="ignoreIssue('${id}')">${t('ignore')}</button>
+    </div></div>`);
+  document.getElementById('pop-host').appendChild(popEl);
+  const r=e.target.getBoundingClientRect(); const pw=popEl.offsetWidth, ph=popEl.offsetHeight;
+  let left=Math.min(window.innerWidth-pw-10, Math.max(10,r.left));
+  let top=r.bottom+8; if(top+ph>window.innerHeight) top=Math.max(10,r.top-ph-8);
+  popEl.style.left=left+'px'; popEl.style.top=top+'px';
+  setTimeout(()=>document.addEventListener('click',outsidePop),0);
+}
+function outsidePop(e){ if(popEl&&!popEl.contains(e.target)&&e.target.tagName!=='MARK'){ closePop(); } }
+function closePop(){ if(popEl){popEl.remove();popEl=null;document.removeEventListener('click',outsidePop);} }
+function replaceIssue(id){
+  closePop(); const a=state.analysis; const iss=a.issues.find(i=>i.id===id); if(!iss||!iss.suggestion)return;
+  a.text=a.text.slice(0,iss.start)+iss.suggestion+a.text.slice(iss.end);
+  const delta=iss.suggestion.length-(iss.end-iss.start);
+  a.issues.forEach(o=>{ if(o!==iss && o.start>iss.start){ o.start+=delta; o.end+=delta; } });
+  iss.ignored=true;
+  renderAnnot(); renderIssueList(); toast(t('replaced'));
+}
+function ignoreIssue(id){ closePop(); const iss=state.analysis.issues.find(i=>i.id===id); if(iss)iss.ignored=true; renderAnnot(); renderIssueList(); toast(t('ignored')); }
+
+function saveReport(){
+  if(state.user.guest){ toast(t('guestLimit').replace('{n}',GUEST_WORD_LIMIT)); }
+  const a=state.analysis;
+  const rep={id:uid('r'),title:a.title,lang:a.lang,score:a.finalScore,grade:a.grade,orig:a.originality,plag:a.plag,ai:a.ai,
+    words:a.words,chars:a.chars,when:Date.now(),user:state.user.name,
+    issues:a.issues.filter(i=>!i.ignored).map(i=>({type:i.type,frag:i.frag,expl:i.expl,suggestion:i.suggestion}))};
+  state.reports.unshift(rep); store.set('reports',state.reports); toast(t('reportSaved'));
+}
+
+/* ---- History ---- */
+function renderHistory(){
+  main().innerHTML=pageHead(t('historyTitle'));
+  if(!state.history.length){ main().innerHTML+=emptyBox(t('historyEmpty')); return; }
+  main().innerHTML+=`<div class="card" style="padding:6px 4px;overflow:auto"><table>
+    <thead><tr><th>${t('colTitle')}</th><th>${t('colDate')}</th><th>${t('colLang')}</th><th>${t('colOrig')}</th><th>${t('colScore')}</th><th>${t('colGrade')}</th></tr></thead>
+    <tbody>${state.history.map(h=>`<tr><td><b>${esc(h.title)}</b></td><td>${fmtDate(h.when)}</td><td>${LANGS[h.lang]||h.lang}</td><td>${h.orig}%</td><td>${h.score}</td><td><span style="color:${gradeColor(h.grade)};font-weight:700">${gradeLabel(h.grade)}</span></td></tr>`).join('')}</tbody>
+  </table></div>`;
+}
+/* ---- Reports ---- */
+function renderReports(){
+  main().innerHTML=pageHead(t('reportsTitle'));
+  if(!state.reports.length){ main().innerHTML+=emptyBox(t('reportsEmpty')); return; }
+  main().innerHTML+=`<div class="card" style="padding:6px 4px;overflow:auto"><table>
+    <thead><tr><th>${t('colTitle')}</th><th>${t('colDate')}</th><th>${t('colOrig')}</th><th>${t('colScore')}</th><th>${t('colGrade')}</th><th>${t('colActions')}</th></tr></thead>
+    <tbody>${state.reports.map(r=>`<tr>
+      <td><b>${esc(r.title)}</b></td><td>${fmtDate(r.when)}</td><td>${r.orig}%</td><td>${r.score}</td>
+      <td><span style="color:${gradeColor(r.grade)};font-weight:700">${gradeLabel(r.grade)}</span></td>
+      <td style="white-space:nowrap"><button class="btn sm" onclick="viewReport('${r.id}')">${t('view')}</button>
+      <button class="btn sm ghost" onclick="delReport('${r.id}')" style="color:var(--red)">${t('delete')}</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+function delReport(id){ if(!confirm(t('confirmDelete')))return; state.reports=state.reports.filter(r=>r.id!==id); store.set('reports',state.reports); renderReports(); }
+function viewReport(id){
+  const r=state.reports.find(x=>x.id===id); if(!r)return;
+  main().innerHTML=pageHead(t('reportTitle'),r.title)+`
+   <div class="card" style="padding:22px;max-width:820px">
+     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px">
+       <div style="display:flex;gap:12px;align-items:center">${crestSVG(46)}<div><b class="serif" style="font-size:1.1rem">${t('reportTitle')}</b><div style="font-size:.78rem;color:var(--ink-faint)">${t('uniShort')}</div></div></div>
+       <div class="seal" style="--v:${r.orig};width:84px;height:84px"><div class="v"><b style="font-size:1.2rem">${r.orig}%</b></div></div>
+     </div>
+     <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
+       ${kv(t('rUser'),r.user)}${kv(t('rDate'),fmtDate(r.when))}${kv(t('rLang'),LANGS[r.lang]||r.lang)}
+       ${kv(t('rWords'),r.words)}${kv(t('rChars'),r.chars)}${kv(t('finalScore'),r.score+' · '+gradeLabel(r.grade))}
+       ${kv(t('mPlag'),r.plag+'%')}${kv(t('mAI'),r.ai+'%')}${kv(t('originality'),r.orig+'%')}
+     </div>
+     <h3 style="margin:18px 0 8px">${t('rIssues')}</h3>
+     ${r.issues.length?`<div class="issuelist">${r.issues.map(i=>`<div class="issue" style="cursor:default"><span class="tag" style="background:${TYPE_DOT[i.type]}"></span><div class="body"><b>${t(TYPE_LABEL[i.type])}</b><small>${esc(i.expl)}</small></div>${i.suggestion?`<span class="pill lg-suggest">${esc(i.suggestion)}</span>`:''}</div>`).join('')}</div>`:`<p style="color:var(--ink-faint)">${t('everythingGood')}</p>`}
+     <div class="notice" style="margin-top:16px"><span class="ic">ⓘ</span><span>${t('disclaimer')}</span></div>
+     <div style="display:flex;gap:8px;margin-top:16px"><button class="btn" onclick="go('reports')">‹ ${t('reportsTitle')}</button><button class="btn primary" onclick="window.print()">⎙ ${t('exportPdf')}</button></div>
+   </div>`;
+}
+function kv(k,v){ return `<div class="metric"><div class="lab">${k}</div><div style="font-weight:700;margin-top:4px">${esc(String(v))}</div></div>`; }
+
+/* ---- Certificates list ---- */
+function renderCerts(){
+  main().innerHTML=pageHead(t('certsTitle'));
+  if(!state.certs.length){ main().innerHTML+=emptyBox(t('certsEmpty')); return; }
+  main().innerHTML+=`<div class="card" style="padding:6px 4px;overflow:auto"><table>
+   <thead><tr><th>${t('certId')}</th><th>${t('colTitle')}</th><th>${t('colDate')}</th><th>${t('originality')}</th><th>${t('colGrade')}</th><th>${t('colActions')}</th></tr></thead>
+   <tbody>${state.certs.map(c=>`<tr><td class="cid" style="font-family:var(--mono);font-size:.78rem">${c.cid}</td><td>${esc(c.title)}</td><td>${fmtDate(c.when)}</td><td>${c.orig}%</td><td><span style="color:${gradeColor(c.grade)};font-weight:700">${gradeLabel(c.grade)}</span></td>
+     <td><button class="btn sm" onclick="openCert('${c.id}')">${t('view')}</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+/* ---- Certificate ---- */
+function makeCertificate(){
+  const a=state.analysis;
+  const c={id:uid('c'),cid:'UZSWLU-'+Date.now().toString(36).toUpperCase().slice(-8),title:a.title,user:state.user.name,
+    lang:a.lang,orig:a.originality,plag:a.plag,ai:a.ai,score:a.finalScore,grade:a.grade,when:Date.now()};
+  state.certs.unshift(c); store.set('certs',state.certs); state.activeCert=c; go('cert');
+}
+function openCert(id){ state.activeCert=state.certs.find(c=>c.id===id); go('cert'); }
+function renderCertificate(){
+  const c=state.activeCert; if(!c){ go('certs'); return; }
+  main().innerHTML=`
+   <div class="page-h"><div><div class="eyebrow">${t('uniShort')}</div><h1>${t('certHeading')}</h1></div>
+     <div style="display:flex;gap:8px;flex-wrap:wrap">
+       <button class="btn" onclick="go('results')">‹ ${t('backResults')}</button>
+       <button class="btn" onclick="window.print()">⎙ ${t('dlPdf')}</button>
+       <button class="btn" onclick="downloadCert('png')">⬇ ${t('dlPng')}</button>
+       <button class="btn gold" onclick="downloadCert('jpg')">⬇ ${t('dlJpg')}</button>
+     </div></div>
+   <div id="print-area"><div class="cert" id="certNode">
+     <div class="ribbon">${t('appShort')}</div>
+     <div style="display:flex;justify-content:center;margin:6px 0 2px">${crestSVG(54)}</div>
+     <h2>${t('certHeading')}</h2>
+     <div class="sub">${t('certSub')} · ${t('uniShort')}</div>
+     <div class="recip"><div style="font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:#7a7460">${t('certAwardedTo')}</div>
+       <div class="nm">${esc(c.user)}</div></div>
+     <div class="grid">
+       <div><div class="k">${t('certTextTitle')}</div><div class="v">${esc(c.title)}</div></div>
+       <div><div class="k">${t('certDate')}</div><div class="v">${fmtDate(c.when)}</div></div>
+       <div><div class="k">${t('certOrig')}</div><div class="v">${c.orig}%</div></div>
+       <div><div class="k">${t('mPlag')}</div><div class="v">${c.plag}%</div></div>
+       <div><div class="k">${t('mAI')}</div><div class="v">${c.ai}%</div></div>
+       <div><div class="k">${t('certFinal')} · ${t('certGrade')}</div><div class="v">${c.score} · <span style="color:${gradeColor(c.grade)}">${gradeLabel(c.grade)}</span></div></div>
+     </div>
+     <div class="footer">
+       <div>
+         <div class="sigline">${t('certSig')}<br/><b style="font-family:var(--serif);color:#1A2238">Dilshod Xo‘jayev</b></div>
+         <div class="cid" style="margin-top:10px">${t('certId')}: ${c.cid}</div>
+       </div>
+       <div style="text-align:center">
+         <div id="qrbox"></div>
+         <div style="font-size:.62rem;color:#7a7460;margin-top:4px">${t('certVerify')}</div>
+       </div>
+     </div>
+     <div class="seal-stamp">${t('certSeal')}</div>
+     <div style="text-align:center;font-family:var(--ui);font-size:.66rem;color:#9a9276;margin-top:14px">${t('certGenBy')}</div>
+   </div></div>`;
+  // QR
+  loadScript(CDN.qrcode).then(()=>{ const box=document.getElementById('qrbox'); box.innerHTML=''; new QRCode(box,{text:`UZSWLU-VERIFY|${c.cid}|orig:${c.orig}|score:${c.score}`,width:84,height:84,colorDark:'#1A2238',colorLight:'#ffffff'}); }).catch(()=>{ document.getElementById('qrbox').textContent='QR'; });
+}
+async function downloadCert(fmt){
+  try{
+    await loadScript(CDN.html2canvas);
+    const node=document.getElementById('certNode');
+    const canvas=await html2canvas(node,{scale:2,backgroundColor:'#fffdf8',useCORS:true});
+    const a=document.createElement('a'); a.download=`certificate-${state.activeCert.cid}.${fmt}`;
+    a.href=canvas.toDataURL(fmt==='jpg'?'image/jpeg':'image/png',0.95); a.click();
+  }catch(e){ toast('Use “Save as PDF” instead.'); window.print(); }
+}
+
+/* ---- Language settings ---- */
+function renderLang(){
+  main().innerHTML=pageHead(t('langTitle'),t('langDesc'))+`
+   <div class="card" style="padding:18px;max-width:520px"><div style="display:grid;gap:8px">
+     ${Object.entries(LANGS).map(([k,v])=>`<button class="navbtn ${k===state.lang?'active':''}" style="border:1px solid var(--line)" onclick="setLang('${k}');go('lang')"><span class="ic">${k===state.lang?'●':'○'}</span><span>${v}</span><span style="margin-inline-start:auto;font-size:.74rem;color:var(--ink-faint)">${k.toUpperCase()}</span></button>`).join('')}
+   </div></div>`;
+}
+/* ---- Profile ---- */
+function renderProfile(){
+  const u=state.user;
+  main().innerHTML=pageHead(t('profileTitle'))+`
+   <div class="card" style="padding:18px;max-width:520px;display:grid;gap:14px">
+     <div style="display:flex;gap:14px;align-items:center"><div style="width:62px;height:62px;border-radius:50%;background:var(--lapis);color:#fff;display:grid;place-items:center;font-family:var(--serif);font-size:1.6rem">${esc((u.name[0]||'G').toUpperCase())}</div>
+       <div><b style="font-size:1.1rem">${esc(u.name)}</b><div style="color:var(--ink-faint);font-size:.84rem">${u.guest?t('guestMode'):esc(u.email||'')}</div></div></div>
+     <div><label>${t('fullName')}</label><input id="pfName" value="${esc(u.name)}"/></div>
+     <div><label>${t('role')}</label><input value="${u.role==='admin'?t('tabAdmin'):(u.guest?t('guestMode'):t('tabUser'))}" disabled/></div>
+     <div><label>${t('institution')}</label><input value="${esc(t('uniShort'))}" disabled/></div>
+     <button class="btn primary" onclick="state.user.name=document.getElementById('pfName').value||state.user.name;refreshMe();toast(t('saved'))">${t('save')}</button>
+   </div>`;
+}
+/* ---- Admin ---- */
+function renderAdmin(){
+  const demoUsers=[['Dilshod Xo‘jayev','admin@uzswlu.uz','admin'],['Aziza Karimova','aziza@uzswlu.uz','user'],['Bahrom Aliyev','bahrom@uzswlu.uz','user'],['Guest','—','guest']];
+  const reps=state.reports;
+  const avg=reps.length?Math.round(reps.reduce((a,r)=>a+r.orig,0)/reps.length):0;
+  const flagged=reps.filter(r=>r.ai>70||r.plag>40).length;
+  main().innerHTML=pageHead(t('adminTitle'))+`
+   <div class="stat-grid" style="margin-bottom:18px">
+     ${stat(demoUsers.length,t('totalUsers'))}${stat(reps.length,t('totalReports'))}${stat(avg+'%',t('avgOrig'))}${stat(flagged,t('flagged'))}
+   </div>
+   <div class="work">
+     <div class="card" style="padding:16px;overflow:auto"><h3 style="margin:0 0 10px">${t('adminUsers')}</h3>
+       <table><thead><tr><th>${t('fullName')}</th><th>Email</th><th>${t('role')}</th></tr></thead>
+       <tbody>${demoUsers.map(u=>`<tr><td><b>${esc(u[0])}</b></td><td>${esc(u[1])}</td><td><span class="pill" style="background:var(--paper-2)">${u[2]}</span></td></tr>`).join('')}</tbody></table>
+     </div>
+     <div style="display:grid;gap:16px">
+       <div class="card" style="padding:16px"><h3 style="margin:0 0 10px">${t('adminLogo')}</h3>
+         <div style="display:flex;gap:12px;align-items:center">${crestSVG(48)}<div style="flex:1"><p style="margin:0 0 8px;font-size:.84rem;color:var(--ink-faint)">${t('logoHint')}</p>
+           <input id="logoUp" type="file" accept="image/*"/></div></div>
+       </div>
+       <div class="card" style="padding:16px"><h3 style="margin:0 0 8px">${t('adminDicts')}</h3>
+         <p style="font-size:.84rem;color:var(--ink-faint);margin:0 0 10px">${t('dictNote')}</p>
+         <div style="display:flex;flex-wrap:wrap;gap:6px">${Object.values(LANGS).map(l=>`<span class="pill" style="background:var(--paper-2)">${l}</span>`).join('')}</div>
+       </div>
+       <div class="card" style="padding:16px"><h3 style="margin:0 0 10px">${t('adminReports')}</h3>
+         <div style="display:flex;gap:8px"><button class="btn" onclick="exportCSV()">⬇ ${t('exportXls')}</button><button class="btn" onclick="window.print()">⎙ ${t('exportPdf')}</button></div>
+       </div>
+     </div>
+   </div>`;
+  const up=document.getElementById('logoUp');
+  if(up) up.onchange=e=>{ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{ state.logo=r.result; store.set('logo',r.result); paintCrests(); renderAdmin(); toast('✓'); }; r.readAsDataURL(f); };
+}
+function stat(n,l){ return `<div class="card stat"><div class="n">${n}</div><div class="l">${l}</div></div>`; }
+function exportCSV(){
+  const rows=[['ID','Title','User','Lang','Originality','Plagiarism','AI','Score','Grade','Date']];
+  state.reports.forEach(r=>rows.push([r.id,r.title,r.user,r.lang,r.orig,r.plag,r.ai,r.score,gradeLabel(r.grade),new Date(r.when).toISOString()]));
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='reports.csv'; a.click();
+}
+/* ---- Help ---- */
+function renderHelp(){
+  const steps=[
+    [t('navNew'),t('heroLead')],
+    [t('uploadTab'),t('dropSub')],
+    [t('analyze'),t('aiWhy')],
+    [t('makeCert'),t('certSub')]
+  ];
+  main().innerHTML=pageHead(t('helpTitle'))+`
+   <div class="card" style="padding:20px;max-width:760px;display:grid;gap:16px">
+     ${steps.map((s,i)=>`<div style="display:flex;gap:14px"><div style="flex:0 0 34px;height:34px;border-radius:50%;background:var(--lapis);color:#fff;display:grid;place-items:center;font-family:var(--serif);font-weight:700">${i+1}</div><div><b>${esc(s[0])}</b><p style="margin:3px 0 0;color:var(--ink-soft);font-size:.9rem">${esc(s[1])}</p></div></div>`).join('')}
+     <div class="notice"><span class="ic">ⓘ</span><span>${t('disclaimer')}</span></div>
+     <div style="font-size:.82rem;color:var(--ink-faint);border-top:1px solid var(--line);padding-top:12px">${t('authorLine')} · ${t('uniShort')}</div>
+   </div>`;
+}
+function emptyBox(msg){ return `<div class="card"><div class="empty"><div class="big">🗂</div>${esc(msg)}</div></div>`; }
+
+/* ============================ chrome wiring ============================ */
+const SAMPLE = `Artificial intelligence give many useful opportunity for student learning process. In today's world, AI plays a crucial role in education and it is important to note that it offers a wide range of benefits. Moreover, the technology is very good and helps students a lot. Furthermore, teachers can use these tools to provide feedback. The system definately improves the quality of learning. However, students must recieve proper guidance. Additionally, the integration of these systems plays a vital role in modern classrooms, and overall, the benefits are clear. The the use of such tools must be careful and thoughtful.`;
+
+function closeSide(){ document.getElementById('side').classList.remove('open'); const sc=document.querySelector('.scrim'); if(sc)sc.remove(); }
+function initApp(){
+  document.getElementById('langBtn').onclick=()=>toggle('langMenu');
+  document.getElementById('userBtn').onclick=()=>toggle('userMenu');
+  document.getElementById('themeBtn').onclick=()=>{ state.theme=state.theme==='light'?'dark':'light'; applyTheme(); };
+  document.getElementById('logoutBtn').onclick=logout;
+  document.getElementById('userMenu').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{toggle('userMenu',false);go(b.dataset.go);});
+  document.getElementById('hamb').onclick=()=>{ const s=document.getElementById('side'); const open=!s.classList.contains('open'); s.classList.toggle('open',open); if(open){ const sc=el('<div class="scrim"></div>'); sc.onclick=closeSide; document.body.appendChild(sc);} else closeSide(); };
+  document.addEventListener('click',e=>{ if(!e.target.closest('.switcher')){ toggle('langMenu',false); toggle('userMenu',false);} });
+  window.addEventListener('resize',()=>{ if(window.innerWidth>880) closeSide(); });
+}
+
+/* ============================ boot ============================ */
+applyTheme(); initAuth(); initApp();
+window.t=t; window.setLang=setLang; window.toggle=toggle; window.go=go; window.toast=toast;
+window.renderWork=renderWork; window.runAnalysis=runAnalysis;
+window.replaceIssue=replaceIssue; window.ignoreIssue=ignoreIssue; window.scrollToIssue=scrollToIssue;
+window.saveReport=saveReport; window.makeCertificate=makeCertificate; window.downloadCert=downloadCert;
+window.viewReport=viewReport; window.delReport=delReport; window.openCert=openCert; window.exportCSV=exportCSV; window.state=state;
+</script>
+</body>
+</html>

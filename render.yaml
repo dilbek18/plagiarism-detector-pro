@@ -1,9 +1,12 @@
 services:
-  # A Docker web service
   - type: web
-    name: fastapi-example
-    runtime: python
+    name: plagiarism-detector-internet-server
+    env: python
     plan: free
-    autoDeploy: false
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SEARCH_PROVIDER
+        value: internet_server_all
+      - key: ALLOW_ORIGINS
+        value: '*'

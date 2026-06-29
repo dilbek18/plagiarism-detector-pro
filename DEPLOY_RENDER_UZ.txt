@@ -1,0 +1,38 @@
+OCHIQ SAYTGA CHIQARISH: RENDER VARIANTI
+
+Bu papka Render.com, Railway yoki VPS serverga joylashga tayyor.
+ChatGPT sizning hosting hisobingizga kira olmaydi va o'zi link yarata olmaydi.
+Link chiqishi uchun siz hosting panelida 5 daqiqalik deploy bosqichlarini qilasiz.
+
+RENDERDA JOYLASH:
+1) GitHub.com ga kiring va yangi repository yarating.
+2) Bu papkadagi barcha fayllarni repositoryga yuklang.
+3) Render.com ga kiring.
+4) New + -> Web Service bosing.
+5) GitHub repositoryni tanlang.
+6) Build Command:
+   pip install -r requirements.txt
+7) Start Command:
+   uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+8) Environment variable qo'shing:
+   SEARCH_PROVIDER = internet_server_all
+   ALLOW_ORIGINS = *
+9) Deploy bosing.
+10) Render sizga https://...onrender.com ko'rinishida ochiq link beradi.
+
+RAILWAYDA JOYLASH:
+1) Railway.app ga kiring.
+2) New Project -> Deploy from GitHub repo.
+3) Repositoryni tanlang.
+4) Variables qismida:
+   SEARCH_PROVIDER=internet_server_all
+   ALLOW_ORIGINS=*
+5) Start command:
+   uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+6) Deploy tugagach public domain/link yarating.
+
+MUHIM:
+- Interfeysda API kalitlari ko'rinmaydi.
+- Internet qidiruvi backend orqali ishlaydi.
+- Ochiq qidiruv sahifalarini avtomatik tekshiradi.
+- Google/Bing maxsus API kaliti shart emas, lekin bepul ochiq qidiruvda ba'zi so'rovlar sekin yoki cheklangan bo'lishi mumkin.
